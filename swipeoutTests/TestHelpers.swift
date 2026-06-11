@@ -45,6 +45,9 @@ final class FakePhotoLibraryService: PhotoLibraryServicing {
         photosByMode[mode.title] ?? []
     }
 
+    var monthBucketsToReturn: [MonthBucket] = []
+    func photoMonthBuckets() -> [MonthBucket] { monthBucketsToReturn }
+
     func fetchItems(withIDs ids: [String]) -> [PhotoItem] {
         let all = photosByMode.values.flatMap { $0 }
         var byID: [String: PhotoItem] = [:]

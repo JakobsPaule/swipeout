@@ -22,8 +22,8 @@ enum PhotoOrdering {
             return items.sorted { sortKey($0) < sortKey($1) }
         case .random:
             return items.shuffled(using: &generator)
-        case .album:
-            // Album ordering is handled by the fetch (album order preserved);
+        case .album, .dateRange:
+            // Ordering is handled by the fetch (album / date order preserved);
             // default here to newest-first as a stable fallback.
             return items.sorted { sortKey($0) > sortKey($1) }
         }

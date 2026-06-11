@@ -25,6 +25,7 @@ struct RootView: View {
                     HomeView()
                 }
             }
+            .legibleOverBackground()
         }
         .fontDesign(.serif)
         .preferredColorScheme(isDarkMode ? .dark : .light)

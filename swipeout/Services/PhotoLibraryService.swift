@@ -44,6 +44,7 @@ protocol PhotoLibraryServicing: AnyObject {
     func requestAccess() async -> LibraryAccess
     func fetchAlbums() -> [AlbumInfo]
     func fetchPhotos(for mode: BrowseMode) -> [PhotoItem]
+    func photoMonthBuckets() -> [MonthBucket]
     func fetchItems(withIDs ids: [String]) -> [PhotoItem]
     func loadImage(for item: PhotoItem, targetSize: CGSize) async -> UIImage?
     func estimatedBytes(for item: PhotoItem) -> Int64
@@ -141,7 +142,37 @@ final class PhotoLibraryService: PhotoLibraryServicing {
             }
             options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
             return items(from: PHAsset.fetchAssets(in: collection, options: options))
+
+        case .dateRange(let start, let end):
+            options.predicate = NSPredicate(
+                format: "mediaType == %d AND creationDate >= %@ AND creationDate <= %@",
+                PHAssetMediaType.image.rawValue, start as NSDate, end as NSDate)
+            options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+            return items(from: PHAsset.fetchAssets(with: options))
         }
+    }
+
+    /// Counts photos per calendar month across the whole library, for the
+    /// date-range picker's zoomable timeline. Runs a single metadata-only
+    /// enumeration (no image data loaded).
+    func photoMonthBuckets() -> [MonthBucket] {
+        let options = PHFetchOptions()
+        options.predicate = NSPredicate(format: "mediaType == %d",
+                                        PHAssetMediaType.image.rawValue)
+        options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
+        let result = PHAsset.fetchAssets(with: options)
+
+        let calendar = Calendar.current
+        var counts: [Int: Int] = [:]   // key = year*100 + month
+        result.enumerateObjects { asset, _, _ in
+            guard let date = asset.creationDate else { return }
+            let comps = calendar.dateComponents([.year, .month], from: date)
+            guard let y = comps.year, let m = comps.month else { return }
+            counts[y * 100 + m, default: 0] += 1
+        }
+        return counts
+            .map { MonthBucket(year: $0.key / 100, month: $0.key % 100, count: $0.value) }
+            .sorted { ($0.year, $0.month) < ($1.year, $1.month) }
     }
 
     /// Fetches photo items for specific asset identifiers, preserving the order

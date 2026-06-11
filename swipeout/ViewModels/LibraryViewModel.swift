@@ -131,6 +131,12 @@ final class LibraryViewModel {
                                      service: service, tracker: reviewStore)
     }
 
+    /// Photo counts per calendar month, used by the date-range picker's
+    /// zoomable timeline. Computed on demand (metadata-only enumeration).
+    func monthBuckets() -> [MonthBucket] {
+        service.photoMonthBuckets()
+    }
+
     // MARK: Pending-deletion folder (persistent)
 
     /// Loads the photos currently in the persistent pending-deletion folder.

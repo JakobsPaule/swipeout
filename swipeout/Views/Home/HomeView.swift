@@ -36,6 +36,15 @@ struct HomeView: View {
                 .accessibilityIdentifier("startCleaningButton")
                 .tourTarget("startCleaningButton")
 
+                Button {
+                    path.append(Route.dateRangePicker)
+                } label: {
+                    Label("Browse by Date", systemImage: "calendar")
+                }
+                .buttonStyle(.glass())
+                .accessibilityIdentifier("browseByDateButton")
+                .tourTarget("browseByDateButton")
+
                 if library.pendingCount > 0 {
                     Button {
                         path.append(Route.pendingDeletions)
@@ -84,6 +93,8 @@ struct HomeView: View {
                     ModeSelectorView(path: $path, purpose: purpose)
                 case .swipe(let mode):
                     SwipeContainerView(mode: mode, path: $path)
+                case .dateRangePicker:
+                    DateRangePickerView(path: $path)
                 case .pendingDeletions:
                     PendingDeletionsView(path: $path)
                 case .stats:
@@ -139,6 +150,7 @@ struct HomeView: View {
 enum Route: Hashable {
     case modeSelector(purpose: ModeSelectorPurpose)
     case swipe(mode: BrowseMode)
+    case dateRangePicker
     case pendingDeletions
     case stats
     case settings
@@ -159,15 +171,17 @@ struct StatsSummaryCard: View {
         VStack(spacing: 12) {
             Text("Lifetime Cleanup")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.appSubtext)
             HStack(spacing: 32) {
                 metric(value: "\(stats.totalPhotosDeleted)", label: "Photos")
                 metric(value: StorageFormat.gigabytes(stats.totalBytesFreed), label: "Freed")
             }
         }
+        .foregroundStyle(Color.appText)
         .frame(maxWidth: .infinity)
         .padding(.vertical, 20)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .background(Color.appButton.opacity(0.35), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .strokeBorder(.white.opacity(0.25), lineWidth: 1)
@@ -178,7 +192,7 @@ struct StatsSummaryCard: View {
     private func metric(value: String, label: String) -> some View {
         VStack(spacing: 4) {
             Text(value).font(.title2.bold())
-            Text(label).font(.caption).foregroundStyle(.secondary)
+            Text(label).font(.caption).foregroundStyle(Color.appSubtext)
         }
     }
 }

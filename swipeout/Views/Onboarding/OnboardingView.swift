@@ -24,7 +24,7 @@ struct OnboardingView: View {
                     .multilineTextAlignment(.center)
                 Text("Quickly review your photos with a swipe and clear out clutter to free up storage.")
                     .font(.body)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.appSubtext)
                     .multilineTextAlignment(.center)
             }
             .padding(.horizontal)
@@ -49,18 +49,15 @@ struct OnboardingView: View {
                 }
             } label: {
                 Text(isRequesting ? "Requesting…" : "Get Started")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.glass(prominent: true))
             .disabled(isRequesting)
             .padding(.horizontal, 28)
             .accessibilityIdentifier("getStartedButton")
 
             Text("You’ll be asked for permission to access your photos.")
                 .font(.footnote)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.appSubtext)
                 .padding(.bottom)
         }
         .padding()
@@ -81,7 +78,7 @@ struct FeatureRow: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.headline)
-                Text(detail).font(.subheadline).foregroundStyle(.secondary)
+                Text(detail).font(.subheadline).foregroundStyle(Color.appSubtext)
             }
         }
     }

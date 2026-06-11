@@ -48,6 +48,9 @@ struct TourStep: Identifiable {
         TourStep(id: "startCleaningButton",
                  title: "Start Cleaning",
                  message: "This is where the magic happens. Tap to start swiping through your photos — swipe left to mark a photo for deletion, swipe right to keep it."),
+        TourStep(id: "browseByDateButton",
+                 title: "Browse by Date",
+                 message: "Want to clean up a specific time period? Zoom through your timeline by year and month and pick a custom start and end. It's a one-off — your usual place is kept."),
         TourStep(id: "pendingDeletionsButton",
                  title: "Marked for Deletion",
                  message: "Photos you mark collect here. Open this folder to review them and permanently delete them when you're ready."),
@@ -162,7 +165,7 @@ struct TourOverlay: View {
                         visible: visible, idx: safeIndex)
             }
             .frame(width: full.width, height: full.height)
-            .offset(x: -insets.leading, y: -insets.top)
+            .ignoresSafeArea()
             .animation(.easeInOut(duration: 0.25), value: safeIndex)
             .onChange(of: safeIndex) { _, _ in speaker.stop() }
             .transition(.opacity)
@@ -254,15 +257,16 @@ struct TourOverlay: View {
         if let anchor = anchors[step.id] {
             return proxy[anchor]
         }
-        // Approximate position for toolbar buttons: centered in the nav bar,
-        // ~22pt above the content top edge.
-        let size: CGFloat = 42
-        let y = -22 - size / 2
+        // Approximate position for toolbar buttons. In the content coordinate
+        // space (origin at the top of the safe area) the navigation-bar buttons
+        // sit just below the top edge, roughly centred ~22pt down.
+        let size: CGFloat = 40
+        let y: CGFloat = 22 - size / 2
         switch step.fallback {
         case .topLeading:
-            return CGRect(x: 6, y: y, width: size, height: size)
+            return CGRect(x: 8, y: y, width: size, height: size)
         case .topTrailing:
-            return CGRect(x: proxy.size.width - size - 6, y: y, width: size, height: size)
+            return CGRect(x: proxy.size.width - size - 8, y: y, width: size, height: size)
         case .none:
             return .zero
         }
