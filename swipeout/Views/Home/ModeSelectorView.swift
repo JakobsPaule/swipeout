@@ -61,6 +61,8 @@ struct ModeSelectorView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .appBackground()
         .navigationTitle(purpose == .firstTime ? "Choose Mode" : "Change Mode")
         .navigationBarTitleDisplayMode(.inline)
     }

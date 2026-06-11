@@ -18,50 +18,48 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            ScrollView {
-                VStack(spacing: 20) {
-                    if library.access == .limited {
-                        LimitedAccessBanner()
-                    }
+            VStack(spacing: 22) {
+                Spacer(minLength: 0)
 
-                    StatsSummaryCard(stats: library.lifetimeStats)
-
-                    Button {
-                        startCleaning()
-                    } label: {
-                        Label("Start Cleaning", systemImage: "hand.draw.fill")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .accessibilityIdentifier("startCleaningButton")
-                    .tourTarget("startCleaningButton")
-
-                    if library.pendingCount > 0 {
-                        Button {
-                            path.append(Route.pendingDeletions)
-                        } label: {
-                            Label("Review \(library.pendingCount) Marked for Deletion",
-                                  systemImage: "trash")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(.red)
-                        .accessibilityIdentifier("pendingDeletionsButton")
-                        .tourTarget("pendingDeletionsButton")
-                    }
-
-                    NavigationLink(value: Route.stats) {
-                        Label("View Stats", systemImage: "chart.bar.fill")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .accessibilityIdentifier("viewStatsButton")
-                    .tourTarget("viewStatsButton")
+                if library.access == .limited {
+                    LimitedAccessBanner()
                 }
-                .padding()
+
+                StatsSummaryCard(stats: library.lifetimeStats)
+
+                Button {
+                    startCleaning()
+                } label: {
+                    Label("Start Cleaning", systemImage: "hand.draw.fill")
+                }
+                .buttonStyle(.glass(tint: .accentColor, prominent: true))
+                .accessibilityIdentifier("startCleaningButton")
+                .tourTarget("startCleaningButton")
+
+                if library.pendingCount > 0 {
+                    Button {
+                        path.append(Route.pendingDeletions)
+                    } label: {
+                        Label("Review \(library.pendingCount) Marked for Deletion",
+                              systemImage: "trash")
+                    }
+                    .buttonStyle(.glass(tint: .red))
+                    .accessibilityIdentifier("pendingDeletionsButton")
+                    .tourTarget("pendingDeletionsButton")
+                }
+
+                NavigationLink(value: Route.stats) {
+                    Label("View Stats", systemImage: "chart.bar.fill")
+                }
+                .buttonStyle(.glass())
+                .accessibilityIdentifier("viewStatsButton")
+                .tourTarget("viewStatsButton")
+
+                Spacer(minLength: 0)
             }
+            .padding(.horizontal, 24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .appBackground()
             .navigationTitle("SwipeClean")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -168,8 +166,13 @@ struct StatsSummaryCard: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding()
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .padding(.vertical, 20)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .strokeBorder(.white.opacity(0.25), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.15), radius: 10, y: 5)
     }
 
     private func metric(value: String, label: String) -> some View {

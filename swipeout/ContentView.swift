@@ -13,16 +13,20 @@ struct RootView: View {
     @AppStorage("isDarkMode") private var isDarkMode = false
 
     var body: some View {
-        Group {
-            switch library.access {
-            case .notDetermined:
-                OnboardingView()
-            case .denied, .restricted:
-                PermissionDeniedView()
-            case .limited, .authorized:
-                HomeView()
+        ZStack {
+            AppBackground()
+            Group {
+                switch library.access {
+                case .notDetermined:
+                    OnboardingView()
+                case .denied, .restricted:
+                    PermissionDeniedView()
+                case .limited, .authorized:
+                    HomeView()
+                }
             }
         }
+        .fontDesign(.serif)
         .preferredColorScheme(isDarkMode ? .dark : .light)
         .onChange(of: scenePhase) { _, phase in
             // Permissions can change in Settings while we're backgrounded.

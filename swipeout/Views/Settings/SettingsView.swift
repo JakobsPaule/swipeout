@@ -110,6 +110,8 @@ struct SettingsView: View {
                 LabeledContent("Version", value: appVersion)
             }
         }
+        .scrollContentBackground(.hidden)
+        .appBackground()
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
         .confirmationDialog("Reset lifetime stats?",

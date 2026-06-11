@@ -34,6 +34,7 @@ struct PendingDeletionsView: View {
                 folderList
             }
         }
+        .appBackground()
         .navigationTitle("Marked for Deletion")
         .navigationBarTitleDisplayMode(.inline)
         .alert("Delete \(items.count) photo(s)?", isPresented: $showConfirm) {

@@ -25,6 +25,8 @@ struct StatsView: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .scrollContentBackground(.hidden)
+        .appBackground()
         .navigationTitle("Stats")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { library.refreshStats() }
