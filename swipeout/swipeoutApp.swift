@@ -1,17 +1,18 @@
 //
 //  swipeoutApp.swift
-//  swipeout
-//
-//  Created by Jakob Paul on 11.06.26.
+//  swipeout (SwipeClean)
 //
 
 import SwiftUI
 
 @main
 struct swipeoutApp: App {
+    @State private var library = LibraryViewModel()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
+                .environment(library)
         }
     }
 }

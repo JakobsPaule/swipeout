@@ -1,24 +1,40 @@
 //
-//  ContentView.swift
-//  swipeout
+//  ContentView.swift  →  RootView
+//  swipeout (SwipeClean)
 //
-//  Created by Jakob Paul on 11.06.26.
+//  Decides which top-level screen to show based on Photos permission.
 //
 
 import SwiftUI
 
-struct ContentView: View {
+struct RootView: View {
+    @Environment(LibraryViewModel.self) private var library
+    @Environment(\.scenePhase) private var scenePhase
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        Group {
+            switch library.access {
+            case .notDetermined:
+                OnboardingView()
+            case .denied, .restricted:
+                PermissionDeniedView()
+            case .limited, .authorized:
+                HomeView()
+            }
         }
-        .padding()
+        .onChange(of: scenePhase) { _, phase in
+            // Permissions can change in Settings while we're backgrounded.
+            if phase == .active {
+                library.refreshAccess()
+                if library.access.canAccessAnyPhotos && library.albums.isEmpty {
+                    library.loadAlbums()
+                }
+            }
+        }
     }
 }
 
 #Preview {
-    ContentView()
+    RootView()
+        .environment(LibraryViewModel())
 }
