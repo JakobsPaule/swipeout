@@ -11,7 +11,10 @@ import SwiftUI
 struct HomeView: View {
     @Environment(LibraryViewModel.self) private var library
     @AppStorage("isDarkMode") private var isDarkMode = false
+    @AppStorage("hasSeenTour") private var hasSeenTour = false
     @State private var path = NavigationPath()
+    @State private var showTour = false
+    @State private var tourIndex = 0
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -33,6 +36,7 @@ struct HomeView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier("startCleaningButton")
+                    .tourTarget("startCleaningButton")
 
                     if library.pendingCount > 0 {
                         Button {
@@ -45,6 +49,7 @@ struct HomeView: View {
                         .buttonStyle(.bordered)
                         .tint(.red)
                         .accessibilityIdentifier("pendingDeletionsButton")
+                        .tourTarget("pendingDeletionsButton")
                     }
 
                     NavigationLink(value: Route.stats) {
@@ -52,6 +57,8 @@ struct HomeView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
+                    .accessibilityIdentifier("viewStatsButton")
+                    .tourTarget("viewStatsButton")
                 }
                 .padding()
             }
@@ -91,7 +98,31 @@ struct HomeView: View {
                 library.refreshStats()
                 library.refreshReviewState()
                 if library.albums.isEmpty { library.loadAlbums() }
+                if !hasSeenTour { startTour() }
             }
+        }
+        .overlayPreferenceValue(TourAnchorKey.self) { anchors in
+            GeometryReader { proxy in
+                if showTour {
+                    TourOverlay(steps: TourStep.home,
+                                anchors: anchors,
+                                proxy: proxy,
+                                index: $tourIndex) {
+                        hasSeenTour = true
+                        showTour = false
+                        tourIndex = 0
+                    }
+                }
+            }
+        }
+    }
+
+    /// Starts the intro tour from the beginning, once the layout has settled.
+    private func startTour() {
+        tourIndex = 0
+        // Let the first layout pass complete so target frames are measured.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            showTour = true
         }
     }
 

@@ -9,6 +9,7 @@ struct SettingsView: View {
     @Environment(LibraryViewModel.self) private var library
     @Binding var path: NavigationPath
     @AppStorage("isDarkMode") private var isDarkMode = false
+    @AppStorage("hasSeenTour") private var hasSeenTour = false
     @State private var showResetConfirm = false
     @State private var showClearHistoryConfirm = false
     @State private var showReviewedWarning = false
@@ -59,6 +60,21 @@ struct SettingsView: View {
                 Text("Review History")
             } footer: {
                 Text("SwipeClean remembers which photos you’ve already reviewed (\(library.reviewedCount)) so it doesn’t show them again. Deleting this history means you’ll be shown the same photos again.")
+            }
+
+            Section {
+                Button {
+                    // Re-enable the tour and return Home, where it auto-starts.
+                    hasSeenTour = false
+                    path = NavigationPath()
+                } label: {
+                    Label("Show Intro Tour Again", systemImage: "questionmark.circle")
+                }
+                .accessibilityIdentifier("replayTourButton")
+            } header: {
+                Text("Help")
+            } footer: {
+                Text("Walks you through every button on the main screen once more.")
             }
 
             Section("Privacy") {
