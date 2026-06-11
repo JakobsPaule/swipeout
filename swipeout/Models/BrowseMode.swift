@@ -8,7 +8,7 @@
 import Foundation
 
 /// The way photos are ordered or sourced within a swipe session.
-enum BrowseMode: Equatable, Hashable {
+enum BrowseMode: Equatable, Hashable, Codable {
     /// All photos, newest creation date first.
     case newestFirst
     /// All photos, oldest creation date first.

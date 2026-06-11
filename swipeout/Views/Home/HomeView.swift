@@ -10,6 +10,7 @@ import SwiftUI
 
 struct HomeView: View {
     @Environment(LibraryViewModel.self) private var library
+    @AppStorage("isDarkMode") private var isDarkMode = false
     @State private var path = NavigationPath()
 
     var body: some View {
@@ -23,7 +24,7 @@ struct HomeView: View {
                     StatsSummaryCard(stats: library.lifetimeStats)
 
                     Button {
-                        path.append(Route.modeSelector)
+                        startCleaning()
                     } label: {
                         Label("Start Cleaning", systemImage: "hand.draw.fill")
                             .font(.headline)
@@ -32,6 +33,19 @@ struct HomeView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier("startCleaningButton")
+
+                    if library.pendingCount > 0 {
+                        Button {
+                            path.append(Route.pendingDeletions)
+                        } label: {
+                            Label("Review \(library.pendingCount) Marked for Deletion",
+                                  systemImage: "trash")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.red)
+                        .accessibilityIdentifier("pendingDeletionsButton")
+                    }
 
                     NavigationLink(value: Route.stats) {
                         Label("View Stats", systemImage: "chart.bar.fill")
@@ -43,6 +57,15 @@ struct HomeView: View {
             }
             .navigationTitle("SwipeClean")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        isDarkMode.toggle()
+                    } label: {
+                        Image(systemName: isDarkMode ? "moon.fill" : "sun.max")
+                    }
+                    .accessibilityIdentifier("darkModeToggle")
+                    .accessibilityLabel(isDarkMode ? "Switch to light mode" : "Switch to dark mode")
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink(value: Route.settings) {
                         Image(systemName: "gearshape")
@@ -52,30 +75,52 @@ struct HomeView: View {
             }
             .navigationDestination(for: Route.self) { route in
                 switch route {
-                case .modeSelector:
-                    ModeSelectorView(path: $path)
+                case .modeSelector(let purpose):
+                    ModeSelectorView(path: $path, purpose: purpose)
                 case .swipe(let mode):
                     SwipeContainerView(mode: mode, path: $path)
+                case .pendingDeletions:
+                    PendingDeletionsView(path: $path)
                 case .stats:
                     StatsView()
                 case .settings:
-                    SettingsView()
+                    SettingsView(path: $path)
                 }
             }
             .onAppear {
                 library.refreshStats()
+                library.refreshReviewState()
                 if library.albums.isEmpty { library.loadAlbums() }
             }
+        }
+    }
+
+    /// First run → show the mode selector. Afterwards → go straight to the
+    /// previously chosen mode (changeable from Settings).
+    private func startCleaning() {
+        if let mode = library.selectedMode {
+            path.append(Route.swipe(mode: mode))
+        } else {
+            path.append(Route.modeSelector(purpose: .firstTime))
         }
     }
 }
 
 /// Navigation routes for the app's main stack.
 enum Route: Hashable {
-    case modeSelector
+    case modeSelector(purpose: ModeSelectorPurpose)
     case swipe(mode: BrowseMode)
+    case pendingDeletions
     case stats
     case settings
+}
+
+/// Why the mode selector is being shown.
+enum ModeSelectorPurpose: Hashable {
+    /// First run: choosing the mode starts a session immediately.
+    case firstTime
+    /// Invoked from Settings: choosing the mode just saves it and pops back.
+    case changeFromSettings
 }
 
 struct StatsSummaryCard: View {

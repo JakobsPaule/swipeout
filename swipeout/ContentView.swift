@@ -10,6 +10,7 @@ import SwiftUI
 struct RootView: View {
     @Environment(LibraryViewModel.self) private var library
     @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("isDarkMode") private var isDarkMode = false
 
     var body: some View {
         Group {
@@ -22,6 +23,7 @@ struct RootView: View {
                 HomeView()
             }
         }
+        .preferredColorScheme(isDarkMode ? .dark : .light)
         .onChange(of: scenePhase) { _, phase in
             // Permissions can change in Settings while we're backgrounded.
             if phase == .active {

@@ -24,11 +24,16 @@ final class SwipeSessionViewModel {
 
     let mode: BrowseMode
     @ObservationIgnored private let service: PhotoLibraryServicing
+    @ObservationIgnored private let tracker: ReviewTracking
 
-    init(mode: BrowseMode, items: [PhotoItem], service: PhotoLibraryServicing) {
+    init(mode: BrowseMode,
+         items: [PhotoItem],
+         service: PhotoLibraryServicing,
+         tracker: ReviewTracking = InMemoryReviewTracker()) {
         self.mode = mode
         self.items = items
         self.service = service
+        self.tracker = tracker
     }
 
     // MARK: Derived state
@@ -59,15 +64,20 @@ final class SwipeSessionViewModel {
     func keepCurrent() {
         guard let item = currentItem else { return }
         history.append(SwipeAction(item: item, decision: .keep, index: currentIndex))
+        tracker.markReviewed(item.id)
         currentIndex += 1
     }
 
     /// Swipe left / Delete button: queue for deletion (not deleted yet).
+    /// The item is added to both the in-session queue and the persistent
+    /// pending-deletion folder so it survives stopping and resuming.
     func markCurrentForDeletion() {
         guard let item = currentItem else { return }
         let bytes = service.estimatedBytes(for: item)
         deletionQueue.append(DeletionItem(photo: item, estimatedBytes: bytes))
         history.append(SwipeAction(item: item, decision: .delete, index: currentIndex))
+        tracker.markReviewed(item.id)
+        tracker.addPending(PendingDeletion(id: item.id, estimatedBytes: bytes))
         currentIndex += 1
     }
 
@@ -76,7 +86,9 @@ final class SwipeSessionViewModel {
         guard let last = history.popLast() else { return }
         if last.decision == .delete {
             deletionQueue.removeAll { $0.id == last.item.id }
+            tracker.removePending(ids: [last.item.id])
         }
+        tracker.unmarkReviewed(last.item.id)
         currentIndex = last.index
     }
 

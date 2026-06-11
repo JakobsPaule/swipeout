@@ -7,10 +7,60 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(LibraryViewModel.self) private var library
+    @Binding var path: NavigationPath
+    @AppStorage("isDarkMode") private var isDarkMode = false
     @State private var showResetConfirm = false
+    @State private var showClearHistoryConfirm = false
+    @State private var showReviewedWarning = false
 
     var body: some View {
         List {
+            Section("Appearance") {
+                Toggle(isOn: $isDarkMode) {
+                    Label("Dark Mode", systemImage: isDarkMode ? "moon.fill" : "sun.max")
+                }
+                .accessibilityIdentifier("darkModeSettingsToggle")
+            }
+
+            Section {
+                LabeledContent("Current mode", value: library.selectedMode?.title ?? "Not chosen")
+                Button("Change Browse Mode") {
+                    path.append(Route.modeSelector(purpose: .changeFromSettings))
+                }
+                .accessibilityIdentifier("changeModeButton")
+            } header: {
+                Text("Browse Mode")
+            } footer: {
+                Text("You chose this on first launch. Change it any time here.")
+            }
+
+            Section {
+                Toggle(isOn: Binding(
+                    get: { library.showAlreadyReviewed },
+                    set: { newValue in
+                        if newValue {
+                            // Turning on re-shows photos you've already reviewed.
+                            showReviewedWarning = true
+                        } else {
+                            library.setShowAlreadyReviewed(false)
+                        }
+                    })) {
+                    Label("Show already-reviewed photos", systemImage: "eye")
+                }
+                .accessibilityIdentifier("showReviewedToggle")
+
+                Button(role: .destructive) {
+                    showClearHistoryConfirm = true
+                } label: {
+                    Label("Delete Review History", systemImage: "clock.arrow.circlepath")
+                }
+                .accessibilityIdentifier("clearHistoryButton")
+            } header: {
+                Text("Review History")
+            } footer: {
+                Text("SwipeClean remembers which photos you’ve already reviewed (\(library.reviewedCount)) so it doesn’t show them again. Deleting this history means you’ll be shown the same photos again.")
+            }
+
             Section("Privacy") {
                 privacyRow("lock.fill", "On-device only",
                            "All photo review and deletion happens locally on your iPhone.")
@@ -53,6 +103,20 @@ struct SettingsView: View {
         } message: {
             Text("This clears your counters only. No photos are deleted or changed.")
         }
+        .confirmationDialog("Delete review history?",
+                            isPresented: $showClearHistoryConfirm, titleVisibility: .visible) {
+            Button("Delete History", role: .destructive) { library.clearReviewHistory() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("You’ll be shown the same photos again the next time you start cleaning. No photos are deleted or changed.")
+        }
+        .confirmationDialog("Show already-reviewed photos?",
+                            isPresented: $showReviewedWarning, titleVisibility: .visible) {
+            Button("Show Them Again") { library.setShowAlreadyReviewed(true) }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("New sessions will include photos you’ve already reviewed before.")
+        }
     }
 
     private func privacyRow(_ symbol: String, _ title: String, _ detail: String) -> some View {
@@ -83,5 +147,8 @@ struct SettingsView: View {
 }
 
 #Preview {
-    NavigationStack { SettingsView().environment(LibraryViewModel()) }
+    NavigationStack {
+        SettingsView(path: .constant(NavigationPath()))
+            .environment(LibraryViewModel())
+    }
 }

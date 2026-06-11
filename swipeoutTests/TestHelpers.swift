@@ -45,6 +45,13 @@ final class FakePhotoLibraryService: PhotoLibraryServicing {
         photosByMode[mode.title] ?? []
     }
 
+    func fetchItems(withIDs ids: [String]) -> [PhotoItem] {
+        let all = photosByMode.values.flatMap { $0 }
+        var byID: [String: PhotoItem] = [:]
+        for item in all { byID[item.id] = item }
+        return ids.compactMap { byID[$0] }
+    }
+
     func loadImage(for item: PhotoItem, targetSize: CGSize) async -> UIImage? { nil }
 
     func estimatedBytes(for item: PhotoItem) -> Int64 {

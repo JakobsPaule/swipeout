@@ -34,6 +34,16 @@ struct SwipeContainerView: View {
         .navigationTitle(mode.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button("Pause") {
+                    // Progress is already persisted (reviewed photos are skipped
+                    // next time), so just return home; resume picks up where we
+                    // left off.
+                    library.refreshReviewState()
+                    path = NavigationPath()
+                }
+                .accessibilityIdentifier("pauseSessionButton")
+            }
             if let vm = session.session, vm.deletionCount > 0 {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {

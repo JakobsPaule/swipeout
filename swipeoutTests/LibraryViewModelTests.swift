@@ -16,6 +16,15 @@ final class LibraryViewModelTests: XCTestCase {
         return (vm, service, stats)
     }
 
+    private func makeVMWithReview()
+        -> (LibraryViewModel, FakePhotoLibraryService, InMemoryReviewTracker) {
+        let service = FakePhotoLibraryService()
+        let stats = StatsStore(store: InMemoryKeyValueStore())
+        let review = InMemoryReviewTracker()
+        let vm = LibraryViewModel(service: service, statsStore: stats, reviewStore: review)
+        return (vm, service, review)
+    }
+
     private func makeQueuedSession(_ service: FakePhotoLibraryService,
                                    count: Int,
                                    bytes: Int64) -> SwipeSessionViewModel {
@@ -63,6 +72,74 @@ final class LibraryViewModelTests: XCTestCase {
         await vm.confirmDeletion(for: session)
         XCTAssertTrue(service.deletedIDs.isEmpty)
         XCTAssertNil(vm.lastDeletionResult)
+    }
+
+    // MARK: Review state
+
+    func testSelectModePersistsAndIsReadable() {
+        let (vm, _, review) = makeVMWithReview()
+        XCTAssertNil(vm.selectedMode)
+        vm.selectMode(.random)
+        XCTAssertEqual(vm.selectedMode, .random)
+        XCTAssertEqual(review.selectedMode, .random)
+    }
+
+    func testMakeSessionFiltersAlreadyReviewedByDefault() {
+        let (vm, service, review) = makeVMWithReview()
+        let items = makePhotoItems(5) // asset-0 ... asset-4
+        service.photosByMode[BrowseMode.newestFirst.title] = items
+        review.markReviewed("asset-0")
+        review.markReviewed("asset-2")
+
+        let session = vm.makeSession(for: .newestFirst)
+        XCTAssertEqual(Set(session.items.map(\.id)), ["asset-1", "asset-3", "asset-4"])
+    }
+
+    func testMakeSessionIncludesReviewedWhenOptedIn() {
+        let (vm, service, review) = makeVMWithReview()
+        let items = makePhotoItems(3)
+        service.photosByMode[BrowseMode.newestFirst.title] = items
+        review.markReviewed("asset-0")
+        vm.setShowAlreadyReviewed(true)
+
+        let session = vm.makeSession(for: .newestFirst)
+        XCTAssertEqual(session.items.count, 3)
+    }
+
+    func testMakeSessionExcludesPendingItems() {
+        let (vm, service, review) = makeVMWithReview()
+        let items = makePhotoItems(3)
+        service.photosByMode[BrowseMode.newestFirst.title] = items
+        review.addPending(PendingDeletion(id: "asset-1", estimatedBytes: 0))
+
+        let session = vm.makeSession(for: .newestFirst)
+        XCTAssertFalse(session.items.contains { $0.id == "asset-1" })
+    }
+
+    func testClearReviewHistoryResetsCount() {
+        let (vm, _, review) = makeVMWithReview()
+        review.markReviewed("a")
+        review.markReviewed("b")
+        vm.clearReviewHistory()
+        XCTAssertTrue(review.reviewedIDs.isEmpty)
+        XCTAssertEqual(vm.reviewedCount, 0)
+    }
+
+    func testConfirmPendingDeletionDeletesAndClearsPending() async {
+        let (vm, service, review) = makeVMWithReview()
+        let items = makePhotoItems(2)
+        service.photosByMode[BrowseMode.newestFirst.title] = items
+        for item in items { service.bytesPerItem[item.id] = 1_000_000 }
+        review.addPending(PendingDeletion(id: "asset-0", estimatedBytes: 1_000_000))
+        review.addPending(PendingDeletion(id: "asset-1", estimatedBytes: 1_000_000))
+
+        await vm.confirmPendingDeletion()
+
+        XCTAssertEqual(service.deletedIDs.count, 2)
+        XCTAssertTrue(review.pendingDeletions.isEmpty)
+        XCTAssertEqual(vm.lifetimeStats.totalPhotosDeleted, 2)
+        XCTAssertEqual(vm.lifetimeStats.totalBytesFreed, 2_000_000)
+        XCTAssertEqual(vm.pendingCount, 0)
     }
 
     func testResetStatsClearsLifetimeCounters() async {

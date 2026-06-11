@@ -102,4 +102,50 @@ final class SwipeSessionViewModelTests: XCTestCase {
         vm.removeFromQueue(toRemove)
         XCTAssertEqual(vm.deletionCount, 1)
     }
+
+    // MARK: Review tracking integration
+
+    private func makeTrackedSession(_ count: Int = 5, bytes: Int64 = 1_000_000)
+        -> (SwipeSessionViewModel, InMemoryReviewTracker) {
+        let items = makePhotoItems(count)
+        let service = FakePhotoLibraryService()
+        for item in items { service.bytesPerItem[item.id] = bytes }
+        let tracker = InMemoryReviewTracker()
+        let vm = SwipeSessionViewModel(mode: .newestFirst, items: items,
+                                       service: service, tracker: tracker)
+        return (vm, tracker)
+    }
+
+    func testKeepMarksReviewedInTracker() {
+        let (vm, tracker) = makeTrackedSession(3)
+        let id = vm.currentItem!.id
+        vm.keepCurrent()
+        XCTAssertTrue(tracker.reviewedIDs.contains(id))
+        XCTAssertTrue(tracker.pendingDeletions.isEmpty)
+    }
+
+    func testDeleteMarksReviewedAndAddsPending() {
+        let (vm, tracker) = makeTrackedSession(3, bytes: 500)
+        let id = vm.currentItem!.id
+        vm.markCurrentForDeletion()
+        XCTAssertTrue(tracker.reviewedIDs.contains(id))
+        XCTAssertEqual(tracker.pendingDeletions, [PendingDeletion(id: id, estimatedBytes: 500)])
+    }
+
+    func testUndoDeleteRemovesReviewedAndPending() {
+        let (vm, tracker) = makeTrackedSession(3)
+        let id = vm.currentItem!.id
+        vm.markCurrentForDeletion()
+        vm.undo()
+        XCTAssertFalse(tracker.reviewedIDs.contains(id))
+        XCTAssertTrue(tracker.pendingDeletions.isEmpty)
+    }
+
+    func testUndoKeepRemovesReviewed() {
+        let (vm, tracker) = makeTrackedSession(3)
+        let id = vm.currentItem!.id
+        vm.keepCurrent()
+        vm.undo()
+        XCTAssertFalse(tracker.reviewedIDs.contains(id))
+    }
 }

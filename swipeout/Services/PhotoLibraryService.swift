@@ -44,6 +44,7 @@ protocol PhotoLibraryServicing: AnyObject {
     func requestAccess() async -> LibraryAccess
     func fetchAlbums() -> [AlbumInfo]
     func fetchPhotos(for mode: BrowseMode) -> [PhotoItem]
+    func fetchItems(withIDs ids: [String]) -> [PhotoItem]
     func loadImage(for item: PhotoItem, targetSize: CGSize) async -> UIImage?
     func estimatedBytes(for item: PhotoItem) -> Int64
     func deleteAssets(_ items: [PhotoItem]) async throws
@@ -141,6 +142,18 @@ final class PhotoLibraryService: PhotoLibraryServicing {
             options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
             return items(from: PHAsset.fetchAssets(in: collection, options: options))
         }
+    }
+
+    /// Fetches photo items for specific asset identifiers, preserving the order
+    /// of `ids`. Missing assets (e.g. already deleted) are skipped.
+    func fetchItems(withIDs ids: [String]) -> [PhotoItem] {
+        guard !ids.isEmpty else { return [] }
+        let result = PHAsset.fetchAssets(withLocalIdentifiers: ids, options: nil)
+        var byID: [String: PhotoItem] = [:]
+        result.enumerateObjects { asset, _, _ in
+            byID[asset.localIdentifier] = PhotoItem(asset: asset)
+        }
+        return ids.compactMap { byID[$0] }
     }
 
     // MARK: - Image loading (lazy, cached)
