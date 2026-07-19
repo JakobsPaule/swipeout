@@ -25,17 +25,22 @@ final class SwipeSessionViewModel {
     var errorMessage: String?
 
     let mode: BrowseMode
+    /// True when this mode has photos, but every one of them has already been
+    /// reviewed and is being hidden by the "show already-reviewed" setting.
+    let allAlreadyReviewed: Bool
     @ObservationIgnored private let service: PhotoLibraryServicing
     @ObservationIgnored private let tracker: ReviewTracking
 
     init(mode: BrowseMode,
          items: [PhotoItem],
          service: PhotoLibraryServicing,
-         tracker: ReviewTracking = InMemoryReviewTracker()) {
+         tracker: ReviewTracking = InMemoryReviewTracker(),
+         allAlreadyReviewed: Bool = false) {
         self.mode = mode
         self.items = items
         self.service = service
         self.tracker = tracker
+        self.allAlreadyReviewed = allAlreadyReviewed
     }
 
     // MARK: Derived state
@@ -94,6 +99,10 @@ final class SwipeSessionViewModel {
         tracker.markReviewed(item.id)
         tracker.addFavorite(item.id)
         currentIndex += 1
+
+        Task {
+            try? await service.setFavorite([item], isFavorite: true)
+        }
     }
 
     /// Undo the most recent keep/delete/favorite/move action.
@@ -105,6 +114,9 @@ final class SwipeSessionViewModel {
             tracker.removePending(ids: [last.item.id])
         case .favorite:
             tracker.removeFavorite(last.item.id)
+            Task {
+                try? await service.setFavorite([last.item], isFavorite: false)
+            }
         case .keep:
             break
         case .moveToAlbum(let albumID, _):

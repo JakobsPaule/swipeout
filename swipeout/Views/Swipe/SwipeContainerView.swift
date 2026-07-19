@@ -44,7 +44,7 @@ struct SwipeContainerView: View {
                 }
                 .accessibilityIdentifier("pauseSessionButton")
             }
-            if let vm = session.session, vm.favoriteCount > 0 {
+            if let vm = session.session {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         path.append(Route.favorites)
@@ -54,7 +54,7 @@ struct SwipeContainerView: View {
                     .accessibilityIdentifier("viewFavoritesButton")
                 }
             }
-            if let vm = session.session, vm.deletionCount > 0 {
+            if let vm = session.session {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         presentReview(vm)
@@ -127,8 +127,13 @@ struct SwipeContainerView: View {
     @ViewBuilder
     private func content(_ vm: SwipeSessionViewModel) -> some View {
         if vm.totalCount == 0 {
-            ContentUnavailableView("No Photos", systemImage: "photo.on.rectangle",
-                                   description: Text("There are no photos to review in this selection."))
+            if vm.allAlreadyReviewed {
+                ContentUnavailableView("All Caught Up", systemImage: "checkmark.circle",
+                                       description: Text("All photos have been viewed already. Activate Re-Review in settings if you want to see reviewed photos as well."))
+            } else {
+                ContentUnavailableView("No Photos", systemImage: "photo.on.rectangle",
+                                       description: Text("There are no photos to review in this selection."))
+            }
         } else if vm.isFinished {
             SessionFinishedView(vm: vm,
                                showReview: { presentReview(vm) },

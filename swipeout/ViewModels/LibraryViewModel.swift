@@ -144,12 +144,15 @@ final class LibraryViewModel {
         var items = service.fetchPhotos(for: mode)
         let pendingIDs = Set(reviewStore.pendingDeletions.map(\.id))
         items.removeAll { pendingIDs.contains($0.id) }
+        let countBeforeReviewedFilter = items.count
         if !showAlreadyReviewed {
             let reviewed = reviewStore.reviewedIDs
             items.removeAll { reviewed.contains($0.id) }
         }
+        let allAlreadyReviewed = countBeforeReviewedFilter > 0 && items.isEmpty
         return SwipeSessionViewModel(mode: mode, items: items,
-                                     service: service, tracker: reviewStore)
+                                     service: service, tracker: reviewStore,
+                                     allAlreadyReviewed: allAlreadyReviewed)
     }
 
     /// Photo counts per calendar month, used by the date-range picker's
@@ -188,9 +191,15 @@ final class LibraryViewModel {
     }
 
     /// Removes a single photo from the Favorites folder (keeps the photo).
+    /// Also un-favorites it in the real Photos library to keep both in sync.
     func removeFromFavorites(_ id: String) {
         reviewStore.removeFavorite(id)
         favoritesCount = reviewStore.favoriteIDs.count
+
+        Task {
+            let items = service.fetchItems(withIDs: [id])
+            try? await service.setFavorite(items, isFavorite: false)
+        }
     }
 
     /// Permanently deletes everything in the pending folder via PhotoKit

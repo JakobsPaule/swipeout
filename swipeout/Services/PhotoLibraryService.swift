@@ -65,6 +65,7 @@ protocol PhotoLibraryServicing: AnyObject {
     func addAssets(_ items: [PhotoItem], toAlbumID albumID: String) async throws
     func removeAssets(_ items: [PhotoItem], fromAlbumID albumID: String) async throws
     func createAlbum(named title: String) async throws -> AlbumInfo
+    func setFavorite(_ items: [PhotoItem], isFavorite: Bool) async throws
 }
 
 final class PhotoLibraryService: PhotoLibraryServicing {
@@ -335,6 +336,24 @@ final class PhotoLibraryService: PhotoLibraryServicing {
             throw PhotoLibraryError.albumNotFound
         }
         return makeAlbumInfo(collection, count: 0)
+    }
+
+    /// Mirrors in-app favoriting onto the real Photos library so favorited
+    /// photos also show up in the device's built-in Favorites smart album.
+    func setFavorite(_ items: [PhotoItem], isFavorite: Bool) async throws {
+        let assets = items.compactMap { $0.asset }
+        guard !assets.isEmpty else { return }
+
+        do {
+            try await PHPhotoLibrary.shared().performChanges {
+                for asset in assets {
+                    let request = PHAssetChangeRequest(for: asset)
+                    request.isFavorite = isFavorite
+                }
+            }
+        } catch {
+            throw PhotoLibraryError.albumOperationFailed(underlying: error)
+        }
     }
 
     // MARK: - Helpers
