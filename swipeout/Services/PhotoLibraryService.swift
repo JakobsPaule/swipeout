@@ -21,6 +21,11 @@ struct AlbumInfo: Identifiable, Equatable {
     /// Backing collection used to fetch the album's assets.
     let collection: PHAssetCollection
 
+    /// Whether photos can be manually added to/removed from this album.
+    /// Smart albums (Favorites, Screenshots, Recently Added, etc.) manage
+    /// their membership automatically and reject manual edits.
+    var isEditable: Bool { collection.assetCollectionType == .album }
+
     static func == (lhs: AlbumInfo, rhs: AlbumInfo) -> Bool { lhs.id == rhs.id }
 }
 

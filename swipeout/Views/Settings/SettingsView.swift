@@ -13,6 +13,7 @@ struct SettingsView: View {
     @State private var showResetConfirm = false
     @State private var showClearHistoryConfirm = false
     @State private var showReviewedWarning = false
+    @State private var showDefaultAlbumPicker = false
 
     var body: some View {
         List {
@@ -33,6 +34,18 @@ struct SettingsView: View {
                 Text("Browse Mode")
             } footer: {
                 Text("You chose this on first launch. Change it any time here.")
+            }
+
+            Section {
+                LabeledContent("Default album", value: library.defaultAlbum?.title ?? "Not set")
+                Button("Change Default Album") {
+                    showDefaultAlbumPicker = true
+                }
+                .accessibilityIdentifier("changeDefaultAlbumButton")
+            } header: {
+                Text("Default Album")
+            } footer: {
+                Text("Swiping down on a photo while cleaning moves it straight into this album.")
             }
 
             Section {
@@ -134,6 +147,13 @@ struct SettingsView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("New sessions will include photos you’ve already reviewed before.")
+        }
+        .sheet(isPresented: $showDefaultAlbumPicker) {
+            AlbumPickerView(title: "Default Album",
+                            subtitle: "Swiping down on a photo while cleaning moves it straight into this album.") { album in
+                library.setDefaultAlbum(AlbumRef(id: album.id, title: album.title))
+            }
+            .environment(library)
         }
     }
 

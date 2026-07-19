@@ -23,6 +23,13 @@ struct AlbumPickerView: View {
     @State private var newAlbumName = ""
     @State private var errorMessage: String?
 
+    /// Smart albums (Favorites, Screenshots, Recently Added, etc.) can't
+    /// accept manually added photos, so only user-created albums are offered
+    /// as move/default targets.
+    private var editableAlbums: [AlbumInfo] {
+        library.albums.filter(\.isEditable)
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -31,11 +38,11 @@ struct AlbumPickerView: View {
                         Text(subtitle).foregroundStyle(.secondary)
                     }
                 }
-                Section("Albums") {
-                    if library.albums.isEmpty {
-                        Text("No albums found.").foregroundStyle(.secondary)
+                Section {
+                    if editableAlbums.isEmpty {
+                        Text("No albums yet. Tap + to create one.").foregroundStyle(.secondary)
                     } else {
-                        ForEach(library.albums) { album in
+                        ForEach(editableAlbums) { album in
                             Button {
                                 onSelect(album)
                                 dismiss()
@@ -63,6 +70,10 @@ struct AlbumPickerView: View {
                             .accessibilityIdentifier("albumPicker_\(album.title)")
                         }
                     }
+                } header: {
+                    Text("Albums")
+                } footer: {
+                    Text("Only your own albums are shown — smart albums like Favorites or Screenshots manage their contents automatically and can't be edited.")
                 }
             }
             .scrollContentBackground(.hidden)
