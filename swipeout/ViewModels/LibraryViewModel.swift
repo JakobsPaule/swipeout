@@ -29,6 +29,8 @@ final class LibraryViewModel {
     private(set) var pendingCount: Int
     /// Count of photos reviewed over the app's lifetime.
     private(set) var reviewedCount: Int
+    /// Count of photos in the persistent Favorites folder ("super likes").
+    private(set) var favoritesCount: Int
 
     /// Result of the most recent confirmed deletion, for the success screen.
     var lastDeletionResult: DeletionResult?
@@ -55,6 +57,7 @@ final class LibraryViewModel {
         self.showAlreadyReviewed = reviewStore.showAlreadyReviewed
         self.pendingCount = reviewStore.pendingDeletions.count
         self.reviewedCount = reviewStore.reviewedIDs.count
+        self.favoritesCount = reviewStore.favoriteIDs.count
     }
 
     /// Re-reads review state from the persistent store into the observed
@@ -65,6 +68,7 @@ final class LibraryViewModel {
         showAlreadyReviewed = reviewStore.showAlreadyReviewed
         pendingCount = reviewStore.pendingDeletions.count
         reviewedCount = reviewStore.reviewedIDs.count
+        favoritesCount = reviewStore.favoriteIDs.count
     }
 
     // MARK: Permissions
@@ -158,6 +162,20 @@ final class LibraryViewModel {
         pendingCount = reviewStore.pendingDeletions.count
     }
 
+    // MARK: Favorites folder ("super likes", persistent)
+
+    /// Loads the photos currently favorited, most recently favorited first
+    /// (i.e. newest favorites are at the top).
+    func loadFavoriteItems() -> [PhotoItem] {
+        service.fetchItems(withIDs: reviewStore.favoriteIDs)
+    }
+
+    /// Removes a single photo from the Favorites folder (keeps the photo).
+    func removeFromFavorites(_ id: String) {
+        reviewStore.removeFavorite(id)
+        favoritesCount = reviewStore.favoriteIDs.count
+    }
+
     /// Permanently deletes everything in the pending folder via PhotoKit
     /// (sends to "Recently Deleted") and updates lifetime stats.
     func confirmPendingDeletion() async {
@@ -178,6 +196,8 @@ final class LibraryViewModel {
             let ids = Set(items.map(\.id))
             reviewStore.removePending(ids: ids)
             pendingCount = reviewStore.pendingDeletions.count
+            reviewStore.removeFavorites(ids: ids)
+            favoritesCount = reviewStore.favoriteIDs.count
 
             lifetimeStats = statsStore.recordDeletion(
                 photoCount: items.count, bytesFreed: totalBytes)
@@ -205,6 +225,8 @@ final class LibraryViewModel {
             session.purgeDeletedFromSession(ids: ids)
             reviewStore.removePending(ids: ids)
             pendingCount = reviewStore.pendingDeletions.count
+            reviewStore.removeFavorites(ids: ids)
+            favoritesCount = reviewStore.favoriteIDs.count
 
             lifetimeStats = statsStore.recordDeletion(
                 photoCount: items.count, bytesFreed: totalBytes)

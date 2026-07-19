@@ -35,16 +35,6 @@
 			path = swipeout;
 			sourceTree = "<group>";
 		};
-		836ED94A2FDB2A2A00BFB400 /* swipeoutTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = swipeoutTests;
-			sourceTree = "<group>";
-		};
-		836ED9542FDB2A2A00BFB400 /* swipeoutUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = swipeoutUITests;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,8 +66,6 @@
 			isa = PBXGroup;
 			children = (
 				836ED93C2FDB2A2900BFB400 /* swipeout */,
-				836ED94A2FDB2A2A00BFB400 /* swipeoutTests */,
-				836ED9542FDB2A2A00BFB400 /* swipeoutUITests */,
 				836ED93B2FDB2A2900BFB400 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -130,9 +118,6 @@
 			dependencies = (
 				836ED9492FDB2A2A00BFB400 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				836ED94A2FDB2A2A00BFB400 /* swipeoutTests */,
-			);
 			name = swipeoutTests;
 			packageProductDependencies = (
 			);
@@ -152,9 +137,6 @@
 			);
 			dependencies = (
 				836ED9532FDB2A2A00BFB400 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				836ED9542FDB2A2A00BFB400 /* swipeoutUITests */,
 			);
 			name = swipeoutUITests;
 			packageProductDependencies = (
@@ -400,6 +382,8 @@
 				DEVELOPMENT_TEAM = AAYLKY7572;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = SwipeOut;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "SwipeClean needs access to your photo library so you can review and clean up photos. All review and deletion happens locally on your device. Nothing is ever uploaded.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -434,6 +418,8 @@
 				DEVELOPMENT_TEAM = AAYLKY7572;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = SwipeOut;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "SwipeClean needs access to your photo library so you can review and clean up photos. All review and deletion happens locally on your device. Nothing is ever uploaded.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

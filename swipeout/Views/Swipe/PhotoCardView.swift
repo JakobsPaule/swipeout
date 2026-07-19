@@ -3,7 +3,8 @@
 //  swipeout (SwipeClean)
 //
 //  A single full-screen photo card. Loads its image lazily through the
-//  session view model and exposes drag-to-swipe with keep/delete overlays.
+//  session view model and exposes drag-to-swipe with keep/delete/favorite
+//  ("super like") overlays.
 //
 
 import SwiftUI
@@ -11,14 +12,15 @@ import SwiftUI
 struct PhotoCardView: View {
     let item: PhotoItem
     let session: SwipeSessionViewModel
-    /// Called when a swipe gesture commits. `true` = delete, `false` = keep.
-    let onCommit: (_ delete: Bool) -> Void
+    /// Called when a swipe gesture commits with the resulting decision.
+    let onCommit: (_ decision: SwipeDecision) -> Void
 
     @State private var image: UIImage?
     @State private var translation: CGSize = .zero
     @State private var isLoading = true
 
     private let threshold: CGFloat = 120
+    private let verticalThreshold: CGFloat = 100
 
     var body: some View {
         GeometryReader { geo in
@@ -44,18 +46,24 @@ struct PhotoCardView: View {
                 overlayLabel(text: "DELETE", color: .red, opacity: deleteOpacity, rotation: 18)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                     .padding(28)
+                overlayLabel(text: "FAVORITE", color: .yellow, opacity: favoriteOpacity, rotation: 0)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .padding(.top, 28)
             }
             .frame(width: geo.size.width, height: geo.size.height)
-            .offset(x: translation.width, y: translation.height * 0.2)
-            .rotationEffect(.degrees(Double(translation.width / 20)))
+            .offset(x: translation.width, y: translation.height * (isVerticalDrag ? 1 : 0.2))
+            .rotationEffect(.degrees(isVerticalDrag ? 0 : Double(translation.width / 20)))
             .gesture(
                 DragGesture()
                     .onChanged { translation = $0.translation }
                     .onEnded { value in
-                        if value.translation.width < -threshold {
-                            commit(delete: true, screenWidth: geo.size.width)
-                        } else if value.translation.width > threshold {
-                            commit(delete: false, screenWidth: geo.size.width)
+                        let t = value.translation
+                        if isVerticalDrag(t) && t.height < -verticalThreshold {
+                            commit(decision: .favorite, screenSize: geo.size)
+                        } else if !isVerticalDrag(t) && t.width < -threshold {
+                            commit(decision: .delete, screenSize: geo.size)
+                        } else if !isVerticalDrag(t) && t.width > threshold {
+                            commit(decision: .keep, screenSize: geo.size)
                         } else {
                             withAnimation(.spring) { translation = .zero }
                         }
@@ -72,8 +80,20 @@ struct PhotoCardView: View {
         .accessibilityIdentifier("photoCard")
     }
 
-    private var keepOpacity: Double { Double(max(0, translation.width) / threshold) }
-    private var deleteOpacity: Double { Double(max(0, -translation.width) / threshold) }
+    /// Whether the current drag reads as vertical (favorite) rather than
+    /// horizontal (keep/delete), based on which axis moved further.
+    private func isVerticalDrag(_ t: CGSize) -> Bool { abs(t.height) > abs(t.width) }
+    private var isVerticalDrag: Bool { isVerticalDrag(translation) }
+
+    private var keepOpacity: Double {
+        isVerticalDrag ? 0 : Double(max(0, translation.width) / threshold)
+    }
+    private var deleteOpacity: Double {
+        isVerticalDrag ? 0 : Double(max(0, -translation.width) / threshold)
+    }
+    private var favoriteOpacity: Double {
+        isVerticalDrag ? Double(max(0, -translation.height) / verticalThreshold) : 0
+    }
 
     private func overlayLabel(text: String, color: Color, opacity: Double, rotation: Double) -> some View {
         Text(text)
@@ -85,12 +105,19 @@ struct PhotoCardView: View {
             .opacity(min(1, opacity))
     }
 
-    private func commit(delete: Bool, screenWidth: CGFloat) {
+    private func commit(decision: SwipeDecision, screenSize: CGSize) {
         withAnimation(.easeOut(duration: 0.25)) {
-            translation.width = delete ? -screenWidth * 1.5 : screenWidth * 1.5
+            switch decision {
+            case .delete:
+                translation = CGSize(width: -screenSize.width * 1.5, height: translation.height)
+            case .keep:
+                translation = CGSize(width: screenSize.width * 1.5, height: translation.height)
+            case .favorite:
+                translation = CGSize(width: translation.width, height: -screenSize.height * 1.5)
+            }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            onCommit(delete)
+            onCommit(decision)
             translation = .zero
         }
     }

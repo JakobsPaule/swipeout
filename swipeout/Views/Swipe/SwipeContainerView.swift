@@ -44,6 +44,16 @@ struct SwipeContainerView: View {
                 }
                 .accessibilityIdentifier("pauseSessionButton")
             }
+            if let vm = session.session, vm.favoriteCount > 0 {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        path.append(Route.favorites)
+                    } label: {
+                        Label("\(vm.favoriteCount)", systemImage: "star.fill")
+                    }
+                    .accessibilityIdentifier("viewFavoritesButton")
+                }
+            }
             if let vm = session.session, vm.deletionCount > 0 {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -76,7 +86,9 @@ struct SwipeContainerView: View {
             ContentUnavailableView("No Photos", systemImage: "photo.on.rectangle",
                                    description: Text("There are no photos to review in this selection."))
         } else if vm.isFinished {
-            SessionFinishedView(vm: vm, showReview: { presentReview(vm) })
+            SessionFinishedView(vm: vm,
+                               showReview: { presentReview(vm) },
+                               showFavorites: { path.append(Route.favorites) })
         } else {
             // Progress
             VStack(spacing: 6) {
@@ -89,8 +101,12 @@ struct SwipeContainerView: View {
 
             // Card
             if let item = vm.currentItem {
-                PhotoCardView(item: item, session: vm) { delete in
-                    if delete { vm.markCurrentForDeletion() } else { vm.keepCurrent() }
+                PhotoCardView(item: item, session: vm) { decision in
+                    switch decision {
+                    case .delete: vm.markCurrentForDeletion()
+                    case .keep: vm.keepCurrent()
+                    case .favorite: vm.favoriteCurrent()
+                    }
                     vm.prefetchAround(currentIndex: vm.currentIndex)
                 }
                 .padding(.horizontal)
@@ -98,7 +114,7 @@ struct SwipeContainerView: View {
             }
 
             // Buttons
-            HStack(spacing: 28) {
+            HStack(spacing: 24) {
                 actionButton("Delete", "xmark", .red, id: "deleteButton") {
                     vm.markCurrentForDeletion()
                     vm.prefetchAround(currentIndex: vm.currentIndex)
@@ -107,6 +123,10 @@ struct SwipeContainerView: View {
                     vm.undo()
                 }
                 .disabled(!vm.canUndo)
+                actionButton("Favorite", "star.fill", .yellow, id: "favoriteButton") {
+                    vm.favoriteCurrent()
+                    vm.prefetchAround(currentIndex: vm.currentIndex)
+                }
                 actionButton("Keep", "checkmark", .green, id: "keepButton") {
                     vm.keepCurrent()
                     vm.prefetchAround(currentIndex: vm.currentIndex)
@@ -146,19 +166,33 @@ final class SessionHolder {
 struct SessionFinishedView: View {
     var vm: SwipeSessionViewModel
     let showReview: () -> Void
+    let showFavorites: () -> Void
 
     var body: some View {
         ContentUnavailableView {
             Label("All done!", systemImage: "checkmark.circle.fill")
         } description: {
-            Text(vm.deletionCount > 0
-                 ? "You marked \(vm.deletionCount) photo(s) for deletion."
-                 : "You reviewed every photo. Nothing marked for deletion.")
+            Text(summary)
         } actions: {
             if vm.deletionCount > 0 {
                 Button("Review Deletions", action: showReview)
                     .buttonStyle(.borderedProminent)
             }
+            if vm.favoriteCount > 0 {
+                Button("View Favorites", action: showFavorites)
+                    .buttonStyle(.bordered)
+                    .tint(.yellow)
+            }
         }
+    }
+
+    private var summary: String {
+        if vm.deletionCount == 0 && vm.favoriteCount == 0 {
+            return "You reviewed every photo. Nothing marked for deletion."
+        }
+        var parts: [String] = []
+        if vm.deletionCount > 0 { parts.append("marked \(vm.deletionCount) photo(s) for deletion") }
+        if vm.favoriteCount > 0 { parts.append("favorited \(vm.favoriteCount) photo(s)") }
+        return "You " + parts.joined(separator: " and ") + "."
     }
 }

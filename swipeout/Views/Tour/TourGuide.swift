@@ -47,7 +47,7 @@ struct TourStep: Identifiable {
                  fallback: .topLeading),
         TourStep(id: "startCleaningButton",
                  title: "Start Cleaning",
-                 message: "This is where the magic happens. Tap to start swiping through your photos — swipe left to mark a photo for deletion, swipe right to keep it."),
+                 message: "This is where the magic happens. Tap to start swiping through your photos — swipe left to mark a photo for deletion, right to keep it, or up to favorite your best shots."),
         TourStep(id: "browseByDateButton",
                  title: "Browse by Date",
                  message: "Want to clean up a specific time period? Zoom through your timeline by year and month and pick a custom start and end. It's a one-off — your usual place is kept."),

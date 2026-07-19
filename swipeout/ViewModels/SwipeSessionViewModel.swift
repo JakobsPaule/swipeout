@@ -54,6 +54,9 @@ final class SwipeSessionViewModel {
 
     var deletionCount: Int { deletionQueue.count }
 
+    /// Photos favorited ("super liked") so far in this session.
+    var favoriteCount: Int { history.filter { $0.decision == .favorite }.count }
+
     var estimatedBytesQueued: Int64 {
         deletionQueue.reduce(0) { $0 + $1.estimatedBytes }
     }
@@ -81,12 +84,27 @@ final class SwipeSessionViewModel {
         currentIndex += 1
     }
 
-    /// Undo the most recent keep/delete action.
+    /// Swipe up / Favorite button: a "super like" — keeps the photo and pushes
+    /// it to the top of the persistent Favorites folder.
+    func favoriteCurrent() {
+        guard let item = currentItem else { return }
+        history.append(SwipeAction(item: item, decision: .favorite, index: currentIndex))
+        tracker.markReviewed(item.id)
+        tracker.addFavorite(item.id)
+        currentIndex += 1
+    }
+
+    /// Undo the most recent keep/delete/favorite action.
     func undo() {
         guard let last = history.popLast() else { return }
-        if last.decision == .delete {
+        switch last.decision {
+        case .delete:
             deletionQueue.removeAll { $0.id == last.item.id }
             tracker.removePending(ids: [last.item.id])
+        case .favorite:
+            tracker.removeFavorite(last.item.id)
+        case .keep:
+            break
         }
         tracker.unmarkReviewed(last.item.id)
         currentIndex = last.index

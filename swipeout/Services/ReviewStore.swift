@@ -39,6 +39,13 @@ protocol ReviewTracking: AnyObject {
     func removePending(ids: Set<String>)
     func clearPending()
 
+    /// Favorited photos ("super likes"), most recently favorited first —
+    /// i.e. newly favorited photos are pushed to the top.
+    var favoriteIDs: [String] { get }
+    func addFavorite(_ id: String)
+    func removeFavorite(_ id: String)
+    func removeFavorites(ids: Set<String>)
+
     func setSelectedMode(_ mode: BrowseMode?)
     func setShowAlreadyReviewed(_ value: Bool)
 
@@ -52,6 +59,7 @@ final class ReviewStore: ReviewTracking {
     private enum Keys {
         static let reviewedIDs = "review.lifetime.reviewedIDs"
         static let pending = "review.pendingDeletions"
+        static let favorites = "review.favoriteIDs"
         static let selectedMode = "review.selectedMode"
         static let showReviewed = "review.showAlreadyReviewed"
     }
@@ -117,6 +125,30 @@ final class ReviewStore: ReviewTracking {
         }
     }
 
+    // MARK: Favorites ("super likes")
+
+    var favoriteIDs: [String] {
+        store.object(forKey: Keys.favorites) as? [String] ?? []
+    }
+
+    /// New favorites go to the front of the list, so the most recently
+    /// favorited photo is always shown first ("pushed to the top").
+    func addFavorite(_ id: String) {
+        var list = favoriteIDs
+        list.removeAll { $0 == id }
+        list.insert(id, at: 0)
+        store.set(list as Any?, forKey: Keys.favorites)
+    }
+
+    func removeFavorite(_ id: String) {
+        removeFavorites(ids: [id])
+    }
+
+    func removeFavorites(ids: Set<String>) {
+        let list = favoriteIDs.filter { !ids.contains($0) }
+        store.set(list as Any?, forKey: Keys.favorites)
+    }
+
     // MARK: Selected mode
 
     var selectedMode: BrowseMode? {
@@ -152,6 +184,7 @@ final class ReviewStore: ReviewTracking {
 final class InMemoryReviewTracker: ReviewTracking {
     private(set) var reviewedIDs: Set<String> = []
     private(set) var pendingDeletions: [PendingDeletion] = []
+    private(set) var favoriteIDs: [String] = []
     private(set) var selectedMode: BrowseMode?
     private(set) var showAlreadyReviewed: Bool = false
 
@@ -168,6 +201,13 @@ final class InMemoryReviewTracker: ReviewTracking {
         pendingDeletions.removeAll { ids.contains($0.id) }
     }
     func clearPending() { pendingDeletions.removeAll() }
+
+    func addFavorite(_ id: String) {
+        favoriteIDs.removeAll { $0 == id }
+        favoriteIDs.insert(id, at: 0)
+    }
+    func removeFavorite(_ id: String) { removeFavorites(ids: [id]) }
+    func removeFavorites(ids: Set<String>) { favoriteIDs.removeAll { ids.contains($0) } }
 
     func setSelectedMode(_ mode: BrowseMode?) { selectedMode = mode }
     func setShowAlreadyReviewed(_ value: Bool) { showAlreadyReviewed = value }

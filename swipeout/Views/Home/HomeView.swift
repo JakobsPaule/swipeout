@@ -57,6 +57,17 @@ struct HomeView: View {
                     .tourTarget("pendingDeletionsButton")
                 }
 
+                if library.favoritesCount > 0 {
+                    Button {
+                        path.append(Route.favorites)
+                    } label: {
+                        Label("View \(library.favoritesCount) Favorites",
+                              systemImage: "star.fill")
+                    }
+                    .buttonStyle(.glass(tint: .yellow))
+                    .accessibilityIdentifier("favoritesButton")
+                }
+
                 NavigationLink(value: Route.stats) {
                     Label("View Stats", systemImage: "chart.bar.fill")
                 }
@@ -97,6 +108,8 @@ struct HomeView: View {
                     DateRangePickerView(path: $path)
                 case .pendingDeletions:
                     PendingDeletionsView(path: $path)
+                case .favorites:
+                    FavoritesView(path: $path)
                 case .stats:
                     StatsView()
                 case .settings:
@@ -152,6 +165,7 @@ enum Route: Hashable {
     case swipe(mode: BrowseMode)
     case dateRangePicker
     case pendingDeletions
+    case favorites
     case stats
     case settings
 }

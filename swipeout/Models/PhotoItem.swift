@@ -54,6 +54,8 @@ struct PhotoItem: Identifiable, Equatable, Hashable {
 enum SwipeDecision: Equatable {
     case keep
     case delete
+    /// A "super like": kept, and pushed to the top of the Favorites folder.
+    case favorite
 }
 
 /// A record of a single swipe, used to support undo.
