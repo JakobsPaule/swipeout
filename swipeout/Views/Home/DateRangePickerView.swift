@@ -1,6 +1,6 @@
 //
 //  DateRangePickerView.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  A manual override for starting a session over a custom date range, chosen
 //  by browsing the library's timeline the way the Photos app does: a zoomable

@@ -1,6 +1,6 @@
 //
 //  StatsView.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 
 import SwiftUI

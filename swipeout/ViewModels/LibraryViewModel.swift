@@ -1,6 +1,6 @@
 //
 //  LibraryViewModel.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  App-level coordinator: permission state, album list, session creation,
 //  confirmed deletion, and lifetime stats.
@@ -31,6 +31,8 @@ final class LibraryViewModel {
     private(set) var reviewedCount: Int
     /// Count of photos in the persistent Favorites folder ("super likes").
     private(set) var favoritesCount: Int
+    /// The album the down-swipe gesture moves photos into (nil = not set yet).
+    private(set) var defaultAlbum: AlbumRef?
 
     /// Result of the most recent confirmed deletion, for the success screen.
     var lastDeletionResult: DeletionResult?
@@ -58,6 +60,7 @@ final class LibraryViewModel {
         self.pendingCount = reviewStore.pendingDeletions.count
         self.reviewedCount = reviewStore.reviewedIDs.count
         self.favoritesCount = reviewStore.favoriteIDs.count
+        self.defaultAlbum = reviewStore.defaultAlbum
     }
 
     /// Re-reads review state from the persistent store into the observed
@@ -69,6 +72,7 @@ final class LibraryViewModel {
         pendingCount = reviewStore.pendingDeletions.count
         reviewedCount = reviewStore.reviewedIDs.count
         favoritesCount = reviewStore.favoriteIDs.count
+        defaultAlbum = reviewStore.defaultAlbum
     }
 
     // MARK: Permissions
@@ -91,6 +95,19 @@ final class LibraryViewModel {
         let fetched = service.fetchAlbums()
         albums = fetched
         isLoading = false
+    }
+
+    /// Persists the album the down-swipe gesture moves photos into.
+    func setDefaultAlbum(_ album: AlbumRef?) {
+        reviewStore.setDefaultAlbum(album)
+        defaultAlbum = album
+    }
+
+    /// Creates a new, empty album and adds it to the loaded album list.
+    func createAlbum(named title: String) async throws -> AlbumInfo {
+        let album = try await service.createAlbum(named: title)
+        albums.append(album)
+        return album
     }
 
     // MARK: Mode selection

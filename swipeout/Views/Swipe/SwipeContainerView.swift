@@ -1,6 +1,6 @@
 //
 //  SwipeContainerView.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  Hosts a swipe session: progress, the photo card, action buttons,
 //  undo, and the entry to "Review deletions".
@@ -64,12 +64,54 @@ struct SwipeContainerView: View {
                     .accessibilityIdentifier("reviewDeletionsButton")
                 }
             }
+            if let vm = session.session, vm.currentItem != nil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showMovePicker = true
+                    } label: {
+                        Label("Move to Album", systemImage: "folder")
+                    }
+                    .accessibilityIdentifier("moveToAlbumButton")
+                }
+            }
         }
         .sheet(isPresented: $showReview) {
             if let vm = session.session {
                 ReviewDeletionsView(session: vm)
                     .environment(library)
             }
+        }
+        .sheet(isPresented: $showMovePicker) {
+            if let vm = session.session {
+                AlbumPickerView(title: "Move to Album", subtitle: nil) { album in
+                    Task {
+                        await vm.moveCurrentToAlbum(albumID: album.id, albumTitle: album.title)
+                        vm.prefetchAround(currentIndex: vm.currentIndex)
+                    }
+                }
+                .environment(library)
+            }
+        }
+        .sheet(isPresented: $showDefaultAlbumPicker) {
+            if let vm = session.session {
+                AlbumPickerView(title: "Choose Default Album",
+                                subtitle: "Swiping down moves a photo straight into this album.") { album in
+                    library.setDefaultAlbum(AlbumRef(id: album.id, title: album.title))
+                    Task {
+                        await vm.moveCurrentToAlbum(albumID: album.id, albumTitle: album.title)
+                        vm.prefetchAround(currentIndex: vm.currentIndex)
+                    }
+                }
+                .environment(library)
+            }
+        }
+        .alert("Couldn't Move Photo", isPresented: Binding(
+            get: { session.session?.errorMessage != nil },
+            set: { if !$0 { session.session?.errorMessage = nil } }
+        )) {
+            Button("OK") { session.session?.errorMessage = nil }
+        } message: {
+            Text(session.session?.errorMessage ?? "")
         }
         .onAppear {
             if session.session == nil {
@@ -79,6 +121,8 @@ struct SwipeContainerView: View {
     }
 
     @State private var showReview = false
+    @State private var showMovePicker = false
+    @State private var showDefaultAlbumPicker = false
 
     @ViewBuilder
     private func content(_ vm: SwipeSessionViewModel) -> some View {
@@ -101,13 +145,21 @@ struct SwipeContainerView: View {
 
             // Card
             if let item = vm.currentItem {
-                PhotoCardView(item: item, session: vm) { decision in
+                PhotoCardView(item: item, session: vm, defaultAlbum: library.defaultAlbum) { decision in
                     switch decision {
                     case .delete: vm.markCurrentForDeletion()
                     case .keep: vm.keepCurrent()
                     case .favorite: vm.favoriteCurrent()
+                    case .moveToAlbum(let albumID, let albumTitle):
+                        Task {
+                            await vm.moveCurrentToAlbum(albumID: albumID, albumTitle: albumTitle)
+                            vm.prefetchAround(currentIndex: vm.currentIndex)
+                        }
+                        return
                     }
                     vm.prefetchAround(currentIndex: vm.currentIndex)
+                } onMissingDefaultAlbum: {
+                    showDefaultAlbumPicker = true
                 }
                 .padding(.horizontal)
                 .id(item.id)

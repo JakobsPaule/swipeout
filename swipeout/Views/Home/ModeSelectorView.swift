@@ -1,6 +1,6 @@
 //
 //  ModeSelectorView.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  Lets the user choose Chronological, Random, or Album browsing.
 //  Shown automatically on first run; afterwards reachable from Settings to

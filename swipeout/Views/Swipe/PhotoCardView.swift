@@ -1,6 +1,6 @@
 //
 //  PhotoCardView.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  A single full-screen photo card. Loads its image lazily through the
 //  session view model and exposes drag-to-swipe with keep/delete/favorite
@@ -12,8 +12,12 @@ import SwiftUI
 struct PhotoCardView: View {
     let item: PhotoItem
     let session: SwipeSessionViewModel
+    /// The album the down-swipe gesture moves photos into (nil = not set yet).
+    let defaultAlbum: AlbumRef?
     /// Called when a swipe gesture commits with the resulting decision.
     let onCommit: (_ decision: SwipeDecision) -> Void
+    /// Called when the user swipes down but no default album has been chosen yet.
+    let onMissingDefaultAlbum: () -> Void
 
     @State private var image: UIImage?
     @State private var translation: CGSize = .zero
@@ -49,6 +53,9 @@ struct PhotoCardView: View {
                 overlayLabel(text: "FAVORITE", color: .yellow, opacity: favoriteOpacity, rotation: 0)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     .padding(.top, 28)
+                overlayLabel(text: "MOVE", color: .blue, opacity: moveOpacity, rotation: 0)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .padding(.bottom, 28)
             }
             .frame(width: geo.size.width, height: geo.size.height)
             .offset(x: translation.width, y: translation.height * (isVerticalDrag ? 1 : 0.2))
@@ -60,6 +67,14 @@ struct PhotoCardView: View {
                         let t = value.translation
                         if isVerticalDrag(t) && t.height < -verticalThreshold {
                             commit(decision: .favorite, screenSize: geo.size)
+                        } else if isVerticalDrag(t) && t.height > verticalThreshold {
+                            if let defaultAlbum {
+                                commit(decision: .moveToAlbum(albumID: defaultAlbum.id, albumTitle: defaultAlbum.title),
+                                       screenSize: geo.size)
+                            } else {
+                                withAnimation(.spring) { translation = .zero }
+                                onMissingDefaultAlbum()
+                            }
                         } else if !isVerticalDrag(t) && t.width < -threshold {
                             commit(decision: .delete, screenSize: geo.size)
                         } else if !isVerticalDrag(t) && t.width > threshold {
@@ -94,6 +109,9 @@ struct PhotoCardView: View {
     private var favoriteOpacity: Double {
         isVerticalDrag ? Double(max(0, -translation.height) / verticalThreshold) : 0
     }
+    private var moveOpacity: Double {
+        isVerticalDrag ? Double(max(0, translation.height) / verticalThreshold) : 0
+    }
 
     private func overlayLabel(text: String, color: Color, opacity: Double, rotation: Double) -> some View {
         Text(text)
@@ -114,6 +132,8 @@ struct PhotoCardView: View {
                 translation = CGSize(width: screenSize.width * 1.5, height: translation.height)
             case .favorite:
                 translation = CGSize(width: translation.width, height: -screenSize.height * 1.5)
+            case .moveToAlbum:
+                translation = CGSize(width: translation.width, height: screenSize.height * 1.5)
             }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {

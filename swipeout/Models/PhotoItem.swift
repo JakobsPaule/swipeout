@@ -1,6 +1,6 @@
 //
 //  PhotoItem.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  A lightweight, value-type wrapper around a PHAsset.
 //  Keeping a value type at the view-model layer makes the
@@ -56,6 +56,16 @@ enum SwipeDecision: Equatable {
     case delete
     /// A "super like": kept, and pushed to the top of the Favorites folder.
     case favorite
+    /// Kept, and moved into the given album (e.g. via the down-swipe "default
+    /// album" gesture, or the explicit "Move to Album…" picker).
+    case moveToAlbum(albumID: String, albumTitle: String)
+}
+
+/// A lightweight reference to an album, persisted as the user's chosen
+/// "Default" album for the down-swipe move gesture.
+struct AlbumRef: Codable, Equatable, Identifiable {
+    let id: String
+    let title: String
 }
 
 /// A record of a single swipe, used to support undo.

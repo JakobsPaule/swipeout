@@ -1,6 +1,6 @@
 //
 //  HomeView.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  Dashboard: lifetime stats summary, limited-access notice, and the
 //  entry point into a swipe session via the mode selector.
@@ -80,7 +80,7 @@ struct HomeView: View {
             .padding(.horizontal, 24)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .appBackground()
-            .navigationTitle("SwipeClean")
+            .navigationTitle("Library Control")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {

@@ -1,6 +1,6 @@
 //
 //  SwipeSessionViewModel.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  Owns the ordered photo list for a session, the deletion queue, the
 //  swipe/undo state, and progress. Queue + undo logic is independent of
@@ -21,6 +21,8 @@ final class SwipeSessionViewModel {
     private(set) var deletionQueue: [DeletionItem] = []
     /// Stack of actions, most recent last, for undo.
     private(set) var history: [SwipeAction] = []
+    /// Set when a move-to-album operation fails, for the view to surface.
+    var errorMessage: String?
 
     let mode: BrowseMode
     @ObservationIgnored private let service: PhotoLibraryServicing
@@ -94,7 +96,7 @@ final class SwipeSessionViewModel {
         currentIndex += 1
     }
 
-    /// Undo the most recent keep/delete/favorite action.
+    /// Undo the most recent keep/delete/favorite/move action.
     func undo() {
         guard let last = history.popLast() else { return }
         switch last.decision {
@@ -105,9 +107,34 @@ final class SwipeSessionViewModel {
             tracker.removeFavorite(last.item.id)
         case .keep:
             break
+        case .moveToAlbum(let albumID, _):
+            Task {
+                do {
+                    try await service.removeAssets([last.item], fromAlbumID: albumID)
+                } catch {
+                    errorMessage = (error as? LocalizedError)?.errorDescription
+                        ?? error.localizedDescription
+                }
+            }
         }
         tracker.unmarkReviewed(last.item.id)
         currentIndex = last.index
+    }
+
+    /// Moves the current photo into the given album (e.g. the down-swipe
+    /// "default album" gesture, or the explicit "Move to Album…" picker).
+    /// The photo is kept in the library — this only changes album membership.
+    func moveCurrentToAlbum(albumID: String, albumTitle: String) async {
+        guard let item = currentItem else { return }
+        do {
+            try await service.addAssets([item], toAlbumID: albumID)
+            history.append(SwipeAction(item: item, decision: .moveToAlbum(albumID: albumID, albumTitle: albumTitle), index: currentIndex))
+            tracker.markReviewed(item.id)
+            currentIndex += 1
+        } catch {
+            errorMessage = (error as? LocalizedError)?.errorDescription
+                ?? error.localizedDescription
+        }
     }
 
     /// Remove a single item from the deletion queue (used in the review screen).

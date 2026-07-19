@@ -1,6 +1,6 @@
 //
 //  OnboardingView.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 
 import SwiftUI
@@ -19,7 +19,7 @@ struct OnboardingView: View {
                 .accessibilityHidden(true)
 
             VStack(spacing: 10) {
-                Text("Welcome to SwipeClean")
+                Text("Welcome to Library Control")
                     .font(.largeTitle.bold())
                     .multilineTextAlignment(.center)
                 Text("Quickly review your photos with a swipe and clear out clutter to free up storage.")

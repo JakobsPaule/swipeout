@@ -1,6 +1,6 @@
 //
 //  PhotoLibraryService.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  All PhotoKit interaction lives here: permissions, fetching assets and
 //  albums, efficient image loading with caching, byte-size estimation, and
@@ -27,13 +27,19 @@ struct AlbumInfo: Identifiable, Equatable {
 enum PhotoLibraryError: LocalizedError {
     case accessDenied
     case deletionFailed(underlying: Error)
+    case albumNotFound
+    case albumOperationFailed(underlying: Error)
 
     var errorDescription: String? {
         switch self {
         case .accessDenied:
-            return "SwipeClean doesn't have permission to access your photos."
+            return "Library Control doesn't have permission to access your photos."
         case .deletionFailed(let underlying):
             return "The photos couldn't be deleted: \(underlying.localizedDescription)"
+        case .albumNotFound:
+            return "That album could no longer be found."
+        case .albumOperationFailed(let underlying):
+            return "The album couldn't be updated: \(underlying.localizedDescription)"
         }
     }
 }
@@ -51,6 +57,9 @@ protocol PhotoLibraryServicing: AnyObject {
     func deleteAssets(_ items: [PhotoItem]) async throws
     func startCaching(_ items: [PhotoItem])
     func stopCaching(_ items: [PhotoItem])
+    func addAssets(_ items: [PhotoItem], toAlbumID albumID: String) async throws
+    func removeAssets(_ items: [PhotoItem], fromAlbumID albumID: String) async throws
+    func createAlbum(named title: String) async throws -> AlbumInfo
 }
 
 final class PhotoLibraryService: PhotoLibraryServicing {
@@ -264,6 +273,63 @@ final class PhotoLibraryService: PhotoLibraryServicing {
         } catch {
             throw PhotoLibraryError.deletionFailed(underlying: error)
         }
+    }
+
+    // MARK: - Album mutation
+
+    func addAssets(_ items: [PhotoItem], toAlbumID albumID: String) async throws {
+        let assets = items.compactMap { $0.asset }
+        guard !assets.isEmpty else { return }
+        guard let collection = PHAssetCollection.fetchAssetCollections(
+            withLocalIdentifiers: [albumID], options: nil).firstObject else {
+            throw PhotoLibraryError.albumNotFound
+        }
+
+        do {
+            try await PHPhotoLibrary.shared().performChanges {
+                guard let request = PHAssetCollectionChangeRequest(for: collection) else { return }
+                request.addAssets(assets as NSArray)
+            }
+        } catch {
+            throw PhotoLibraryError.albumOperationFailed(underlying: error)
+        }
+    }
+
+    func removeAssets(_ items: [PhotoItem], fromAlbumID albumID: String) async throws {
+        let assets = items.compactMap { $0.asset }
+        guard !assets.isEmpty else { return }
+        guard let collection = PHAssetCollection.fetchAssetCollections(
+            withLocalIdentifiers: [albumID], options: nil).firstObject else {
+            throw PhotoLibraryError.albumNotFound
+        }
+
+        do {
+            try await PHPhotoLibrary.shared().performChanges {
+                guard let request = PHAssetCollectionChangeRequest(for: collection) else { return }
+                request.removeAssets(assets as NSArray)
+            }
+        } catch {
+            throw PhotoLibraryError.albumOperationFailed(underlying: error)
+        }
+    }
+
+    func createAlbum(named title: String) async throws -> AlbumInfo {
+        var placeholder: PHObjectPlaceholder?
+        do {
+            try await PHPhotoLibrary.shared().performChanges {
+                let request = PHAssetCollectionChangeRequest.creationRequestForAssetCollection(withTitle: title)
+                placeholder = request.placeholderForCreatedAssetCollection
+            }
+        } catch {
+            throw PhotoLibraryError.albumOperationFailed(underlying: error)
+        }
+
+        guard let localIdentifier = placeholder?.localIdentifier,
+              let collection = PHAssetCollection.fetchAssetCollections(
+                withLocalIdentifiers: [localIdentifier], options: nil).firstObject else {
+            throw PhotoLibraryError.albumNotFound
+        }
+        return makeAlbumInfo(collection, count: 0)
     }
 
     // MARK: - Helpers

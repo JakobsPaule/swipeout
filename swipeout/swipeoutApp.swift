@@ -1,6 +1,6 @@
 //
 //  swipeoutApp.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 
 import SwiftUI

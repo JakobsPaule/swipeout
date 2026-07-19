@@ -1,6 +1,6 @@
 //
 //  ContentView.swift  →  RootView
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  Decides which top-level screen to show based on Photos permission.
 //

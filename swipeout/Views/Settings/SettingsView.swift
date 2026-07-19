@@ -1,6 +1,6 @@
 //
 //  SettingsView.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 
 import SwiftUI
@@ -59,7 +59,7 @@ struct SettingsView: View {
             } header: {
                 Text("Review History")
             } footer: {
-                Text("SwipeClean remembers which photos you’ve already reviewed (\(library.reviewedCount)) so it doesn’t show them again. Deleting this history means you’ll be shown the same photos again.")
+                Text("Library Control remembers which photos you’ve already reviewed (\(library.reviewedCount)) so it doesn’t show them again. Deleting this history means you’ll be shown the same photos again.")
             }
 
             Section {
@@ -81,7 +81,7 @@ struct SettingsView: View {
                 privacyRow("lock.fill", "On-device only",
                            "All photo review and deletion happens locally on your iPhone.")
                 privacyRow("icloud.slash", "No uploads",
-                           "SwipeClean never sends your photos or data anywhere.")
+                           "Library Control never sends your photos or data anywhere.")
                 privacyRow("chart.bar.xaxis", "No analytics",
                            "We don’t track you or collect usage data.")
             }

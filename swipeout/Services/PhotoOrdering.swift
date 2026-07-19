@@ -1,6 +1,6 @@
 //
 //  PhotoOrdering.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  Pure ordering helpers, separated from PhotoKit so they can be
 //  unit-tested deterministically.

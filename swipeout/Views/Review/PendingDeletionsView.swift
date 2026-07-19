@@ -1,6 +1,6 @@
 //
 //  PendingDeletionsView.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  The persistent "marked for deletion" folder. Photos swiped left across any
 //  number of sessions collect here until the user explicitly confirms deletion.

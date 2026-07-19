@@ -1,6 +1,6 @@
 //
 //  ByteFormatter.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  Formatting helpers for storage figures.
 //

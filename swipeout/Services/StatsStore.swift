@@ -1,6 +1,6 @@
 //
 //  StatsStore.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  Persists lifetime deletion statistics locally using UserDefaults.
 //  No analytics, no network — everything stays on device.

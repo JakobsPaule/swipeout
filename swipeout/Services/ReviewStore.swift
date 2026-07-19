@@ -1,6 +1,6 @@
 //
 //  ReviewStore.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  Persists review state locally using UserDefaults:
 //    - Which photos have already been reviewed (over the app's full lifespan).
@@ -31,6 +31,8 @@ protocol ReviewTracking: AnyObject {
     var selectedMode: BrowseMode? { get }
     /// Whether already-reviewed photos should be shown again in new sessions.
     var showAlreadyReviewed: Bool { get }
+    /// The album the down-swipe gesture moves photos into (nil = not set yet).
+    var defaultAlbum: AlbumRef? { get }
 
     func markReviewed(_ id: String)
     func unmarkReviewed(_ id: String)
@@ -48,6 +50,7 @@ protocol ReviewTracking: AnyObject {
 
     func setSelectedMode(_ mode: BrowseMode?)
     func setShowAlreadyReviewed(_ value: Bool)
+    func setDefaultAlbum(_ album: AlbumRef?)
 
     /// Clears the lifetime reviewed history (the same photos will be shown again).
     func clearReviewHistory()
@@ -62,6 +65,7 @@ final class ReviewStore: ReviewTracking {
         static let favorites = "review.favoriteIDs"
         static let selectedMode = "review.selectedMode"
         static let showReviewed = "review.showAlreadyReviewed"
+        static let defaultAlbum = "review.defaultAlbum"
     }
 
     private let store: KeyValueStore
@@ -178,6 +182,26 @@ final class ReviewStore: ReviewTracking {
     func setShowAlreadyReviewed(_ value: Bool) {
         store.set(value as Any?, forKey: Keys.showReviewed)
     }
+
+    // MARK: Default album (down-swipe target)
+
+    var defaultAlbum: AlbumRef? {
+        guard let data = store.object(forKey: Keys.defaultAlbum) as? Data,
+              let decoded = try? JSONDecoder().decode(AlbumRef.self, from: data) else {
+            return nil
+        }
+        return decoded
+    }
+
+    func setDefaultAlbum(_ album: AlbumRef?) {
+        guard let album else {
+            store.removeObject(forKey: Keys.defaultAlbum)
+            return
+        }
+        if let data = try? JSONEncoder().encode(album) {
+            store.set(data as Any?, forKey: Keys.defaultAlbum)
+        }
+    }
 }
 
 /// In-memory `ReviewTracking` for tests and for sessions that don't persist.
@@ -187,6 +211,7 @@ final class InMemoryReviewTracker: ReviewTracking {
     private(set) var favoriteIDs: [String] = []
     private(set) var selectedMode: BrowseMode?
     private(set) var showAlreadyReviewed: Bool = false
+    private(set) var defaultAlbum: AlbumRef?
 
     init() {}
 
@@ -211,6 +236,7 @@ final class InMemoryReviewTracker: ReviewTracking {
 
     func setSelectedMode(_ mode: BrowseMode?) { selectedMode = mode }
     func setShowAlreadyReviewed(_ value: Bool) { showAlreadyReviewed = value }
+    func setDefaultAlbum(_ album: AlbumRef?) { defaultAlbum = album }
 
     func clearReviewHistory() { reviewedIDs.removeAll() }
 }

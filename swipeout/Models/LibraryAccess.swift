@@ -1,6 +1,6 @@
 //
 //  LibraryAccess.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  App-level mirror of PHAuthorizationStatus so the UI and view
 //  models don't depend directly on PhotoKit enums.

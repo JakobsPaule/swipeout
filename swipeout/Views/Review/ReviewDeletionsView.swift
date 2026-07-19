@@ -1,6 +1,6 @@
 //
 //  ReviewDeletionsView.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  Shows all photos queued for deletion with thumbnails, count, and
 //  estimated storage. Requires explicit confirmation before deleting.

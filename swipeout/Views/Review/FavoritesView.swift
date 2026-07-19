@@ -1,6 +1,6 @@
 //
 //  FavoritesView.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  The persistent Favorites folder ("super likes"). Photos swiped up in any
 //  session collect here, most recently favorited first. Driven by the

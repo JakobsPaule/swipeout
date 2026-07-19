@@ -1,6 +1,6 @@
 //
 //  BrowseMode.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  Defines how photos are ordered / sourced for a swipe session.
 //

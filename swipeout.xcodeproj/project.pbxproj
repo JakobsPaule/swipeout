@@ -382,9 +382,9 @@
 				DEVELOPMENT_TEAM = AAYLKY7572;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = SwipeOut;
+				INFOPLIST_KEY_CFBundleDisplayName = "Library Control";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "SwipeClean needs access to your photo library so you can review and clean up photos. All review and deletion happens locally on your device. Nothing is ever uploaded.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Library Control needs access to your photo library so you can review and clean up photos. All review and deletion happens locally on your device. Nothing is ever uploaded.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -418,9 +418,9 @@
 				DEVELOPMENT_TEAM = AAYLKY7572;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = SwipeOut;
+				INFOPLIST_KEY_CFBundleDisplayName = "Library Control";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "SwipeClean needs access to your photo library so you can review and clean up photos. All review and deletion happens locally on your device. Nothing is ever uploaded.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Library Control needs access to your photo library so you can review and clean up photos. All review and deletion happens locally on your device. Nothing is ever uploaded.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

@@ -1,6 +1,6 @@
-# SwipeClean
+# Library Control
 
-Regain control of your iPhone photo library. SwipeClean lets you review photos
+Regain control of your iPhone photo library. Library Control lets you review photos
 one at a time with a Tinder-style swipe, queue clutter for deletion, and safely
 remove it — moving photos to iOS **Recently Deleted** so nothing is lost by
 accident.
@@ -108,7 +108,7 @@ xcodebuild test \
 
 ## Known iOS limitations
 
-- **Recently Deleted is final, not us**: SwipeClean cannot permanently delete
+- **Recently Deleted is final, not us**: Library Control cannot permanently delete
   photos. `PHAssetChangeRequest.deleteAssets` moves them to iOS *Recently
   Deleted*, where they remain ~30 days. Permanent removal happens in the Photos
   app or automatically after that window. This is an Apple platform constraint.
@@ -118,7 +118,7 @@ xcodebuild test \
   resource file size. Actual reclaimed space is realized only after photos leave
   Recently Deleted, and iCloud Photos optimization can affect on-device sizes.
 - **Limited access**: with limited permission, only the user-selected photos are
-  visible. SwipeClean surfaces this and links to Settings to manage the
+  visible. Library Control surfaces this and links to Settings to manage the
   selection.
 - **Recently Deleted album** is intentionally **not** accessed directly.
 

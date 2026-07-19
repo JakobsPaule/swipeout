@@ -1,6 +1,6 @@
 //
 //  AppStyle.swift
-//  swipeout (SwipeClean)
+//  swipeout (Library Control)
 //
 //  Shared visual identity: the full-bleed background image (different art for
 //  light vs. dark mode) with a readability scrim, a consistent legible text
