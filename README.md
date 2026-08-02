@@ -15,9 +15,10 @@ accident.
   **full**, **limited**, and **denied** states gracefully.
 - **Browsing modes**: newest-first, oldest-first, random (no repeats per
   session), and per-album (user albums + smart albums).
-- **Swipe interaction**: swipe left to mark for deletion, right to keep. Buttons
-  for Delete / Keep / Undo. Single-step **undo**. Live `current / total`
-  progress.
+- **Swipe interaction**: swipe left to mark for deletion, right to keep, **up to
+  favorite** (super like — mirrors to iOS Favorites via PhotoKit), down to move
+  to a chosen default album. Buttons for Delete / Keep / Favorite / Undo.
+  Single-step **undo**. Live `current / total` progress.
 - **Safe deletion**: nothing is deleted on swipe. A **review queue** shows
   thumbnails, count, and estimated storage. Deletion requires **explicit
   confirmation**, then runs through PhotoKit so photos land in iOS
