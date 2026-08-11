@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support — Library Control</title>
+  <meta name="description" content="Get help with Library Control. FAQs, contact, and troubleshooting." />
+  <style>
+    :root {
+      --bg: #0d0d0f;
+      --surface: #18181b;
+      --border: #2a2a2f;
+      --accent: #e05c5c;
+      --text: #f0f0f2;
+      --muted: #8a8a96;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.7;
+    }
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
+    .logo span { color: var(--accent); }
+    nav a { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
+    nav a:hover { color: var(--text); }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 64px 24px 96px;
+    }
+    .eyebrow {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 1rem;
+      margin-bottom: 48px;
+    }
+
+    .contact-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 48px;
+    }
+    .contact-box p { font-size: 0.95rem; color: var(--muted); margin-bottom: 12px; }
+    .contact-box a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: opacity 0.15s;
+    }
+    .contact-box a:hover { opacity: 0.85; }
+
+    h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin: 40px 0 12px;
+      color: var(--text);
+    }
+    p { font-size: 0.95rem; color: var(--muted); margin-bottom: 16px; }
+
+    .faq { border-top: 1px solid var(--border); margin-top: 8px; }
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+    }
+    .faq-item h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .faq-item p { margin: 0; font-size: 0.9rem; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    footer {
+      padding: 40px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      max-width: 900px;
+      margin: 0 auto;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="logo">Library<span>Control</span></a>
+    <a href="index.html">← Back</a>
+  </nav>
+
+  <div class="container">
+    <p class="eyebrow">Help</p>
+    <h1>Support</h1>
+    <p class="subtitle">Having an issue or a question? We're happy to help.</p>
+
+    <div class="contact-box">
+      <p>For bugs, feature requests, or anything else, send us an email — we typically reply within 24 hours.</p>
+      <a href="mailto:paul_jakob@icloud.com">✉ Contact Support</a>
+    </div>
+
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq">
+
+      <div class="faq-item">
+        <h3>Are my photos permanently deleted when I swipe left?</h3>
+        <p>No. Swiping left only adds a photo to a review queue inside the app. Nothing is deleted until you tap <strong>Confirm Deletion</strong> — and even then, photos are sent to iOS "Recently Deleted", where they remain for 30 days before being permanently erased. You can recover them anytime from the iOS Photos app during that window.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Does Library Control upload my photos anywhere?</h3>
+        <p>Never. All processing happens entirely on your device using Apple's PhotoKit framework. The app makes no network requests and has no analytics. See our <a href="privacy.html">Privacy Policy</a> for full details.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Why does Library Control only show some of my photos?</h3>
+        <p>You may have granted <em>Limited Access</em> rather than <em>Full Access</em> when the app first asked for permission. To allow access to your full library, go to <strong>Settings → Privacy &amp; Security → Photos → Library Control</strong> and select <em>Full Access</em>. You can also tap <em>Manage in Settings</em> from the banner inside the app.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Can I undo a swipe?</h3>
+        <p>Yes — tap the <strong>Undo</strong> button (curved arrow) at any point during a session to reverse your last decision, including deletions and favorites.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>What does "Favorite" (swipe up) do?</h3>
+        <p>Swiping up is a "super like" — it keeps the photo and marks it as a Favorite in your iOS Photos library, so it appears in the built-in Favorites smart album.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>I accidentally cleared my review history. Will I see all photos again?</h3>
+        <p>Yes. Clearing review history removes the record of which photos you've already swiped on. The next session will present all photos again from the beginning.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>How do I reset my stats?</h3>
+        <p>Go to <strong>Settings → Reset Lifetime Stats</strong>. This clears the counters only — it does not affect your photos or review history.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <span>© 2025 Jakob Paul · Library Control</span>
+    <div style="display:flex; gap: 20px;">
+      <a href="index.html">Home</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="mailto:paul_jakob@icloud.com">Email Support</a>
+    </div>
+  </footer>
+
+</body>
+</html>

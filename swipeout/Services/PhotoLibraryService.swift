@@ -66,6 +66,8 @@ protocol PhotoLibraryServicing: AnyObject {
     func removeAssets(_ items: [PhotoItem], fromAlbumID albumID: String) async throws
     func createAlbum(named title: String) async throws -> AlbumInfo
     func setFavorite(_ items: [PhotoItem], isFavorite: Bool) async throws
+    /// Returns total photo and video counts for the whole library (metadata-only).
+    func fetchLibraryTotals() -> (photos: Int, videos: Int)
 }
 
 final class PhotoLibraryService: PhotoLibraryServicing {
@@ -354,6 +356,21 @@ final class PhotoLibraryService: PhotoLibraryServicing {
         } catch {
             throw PhotoLibraryError.albumOperationFailed(underlying: error)
         }
+    }
+
+    /// Counts total photos and videos in the library with a single metadata-only fetch.
+    func fetchLibraryTotals() -> (photos: Int, videos: Int) {
+        let photoOptions = PHFetchOptions()
+        photoOptions.predicate = NSPredicate(format: "mediaType == %d",
+                                             PHAssetMediaType.image.rawValue)
+        let photos = PHAsset.fetchAssets(with: photoOptions).count
+
+        let videoOptions = PHFetchOptions()
+        videoOptions.predicate = NSPredicate(format: "mediaType == %d",
+                                             PHAssetMediaType.video.rawValue)
+        let videos = PHAsset.fetchAssets(with: videoOptions).count
+
+        return (photos, videos)
     }
 
     // MARK: - Helpers

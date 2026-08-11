@@ -186,9 +186,11 @@ struct StatsSummaryCard: View {
             Text("Lifetime Cleanup")
                 .font(.subheadline)
                 .foregroundStyle(Color.appSubtext)
-            HStack(spacing: 32) {
-                metric(value: "\(stats.totalPhotosDeleted)", label: "Photos")
+            HStack(spacing: 24) {
+                metric(value: "\(stats.totalPhotosDeleted)", label: "Deleted")
                 metric(value: StorageFormat.gigabytes(stats.totalBytesFreed), label: "Freed")
+                metric(value: stats.totalTimeSpentSeconds > 0 ? stats.formattedTimeSpent : "—",
+                       label: "Time")
             }
         }
         .foregroundStyle(Color.appText)

@@ -12,12 +12,30 @@ import Foundation
 struct LifetimeStats: Equatable {
     var totalPhotosDeleted: Int
     var totalBytesFreed: Int64
+    /// Total seconds spent in active swipe sessions across the app's lifetime.
+    var totalTimeSpentSeconds: Int
 
-    static let zero = LifetimeStats(totalPhotosDeleted: 0, totalBytesFreed: 0)
+    static let zero = LifetimeStats(totalPhotosDeleted: 0, totalBytesFreed: 0, totalTimeSpentSeconds: 0)
 
     /// Estimated GB freed (decimal GB, i.e. bytes / 1e9).
     var gigabytesFreed: Double {
         Double(totalBytesFreed) / 1_000_000_000
+    }
+
+    /// Human-readable formatting for total time spent (e.g. "1h 23m", "45 min", "30 sec").
+    var formattedTimeSpent: String {
+        let h = totalTimeSpentSeconds / 3600
+        let m = (totalTimeSpentSeconds % 3600) / 60
+        let s = totalTimeSpentSeconds % 60
+        if h > 0 { return "\(h)h \(m)m" }
+        if m > 0 { return "\(m) min" }
+        return "\(s) sec"
+    }
+
+    /// Minutes of sorting time per GB of storage freed. `nil` if nothing freed yet.
+    var minutesPerGigabyte: Double? {
+        guard gigabytesFreed > 0 else { return nil }
+        return Double(totalTimeSpentSeconds) / 60.0 / gigabytesFreed
     }
 }
 
@@ -49,7 +67,8 @@ final class InMemoryKeyValueStore: KeyValueStore {
 final class StatsStore {
     private enum Keys {
         static let totalPhotos = "stats.lifetime.totalPhotosDeleted"
-        static let totalBytes = "stats.lifetime.totalBytesFreed"
+        static let totalBytes  = "stats.lifetime.totalBytesFreed"
+        static let totalTime   = "stats.lifetime.totalTimeSpentSeconds"
     }
 
     private let store: KeyValueStore
@@ -62,8 +81,11 @@ final class StatsStore {
     func load() -> LifetimeStats {
         let photos = store.integer(forKey: Keys.totalPhotos)
         // Int64 is stored as NSNumber; read defensively.
-        let bytes = (store.object(forKey: Keys.totalBytes) as? NSNumber)?.int64Value ?? 0
-        return LifetimeStats(totalPhotosDeleted: photos, totalBytesFreed: bytes)
+        let bytes   = (store.object(forKey: Keys.totalBytes) as? NSNumber)?.int64Value ?? 0
+        let seconds = store.integer(forKey: Keys.totalTime)
+        return LifetimeStats(totalPhotosDeleted: photos,
+                             totalBytesFreed: bytes,
+                             totalTimeSpentSeconds: seconds)
     }
 
     /// Adds a completed deletion batch to the lifetime totals and returns the new totals.
@@ -71,7 +93,17 @@ final class StatsStore {
     func recordDeletion(photoCount: Int, bytesFreed: Int64) -> LifetimeStats {
         var stats = load()
         stats.totalPhotosDeleted += max(0, photoCount)
-        stats.totalBytesFreed += max(0, bytesFreed)
+        stats.totalBytesFreed    += max(0, bytesFreed)
+        persist(stats)
+        return stats
+    }
+
+    /// Accumulates active-session seconds into the lifetime time-spent total.
+    @discardableResult
+    func recordSessionTime(seconds: Int) -> LifetimeStats {
+        guard seconds > 0 else { return load() }
+        var stats = load()
+        stats.totalTimeSpentSeconds += seconds
         persist(stats)
         return stats
     }
@@ -80,10 +112,12 @@ final class StatsStore {
     func reset() {
         store.removeObject(forKey: Keys.totalPhotos)
         store.removeObject(forKey: Keys.totalBytes)
+        store.removeObject(forKey: Keys.totalTime)
     }
 
     private func persist(_ stats: LifetimeStats) {
-        store.set(stats.totalPhotosDeleted, forKey: Keys.totalPhotos)
+        store.set(stats.totalPhotosDeleted,           forKey: Keys.totalPhotos)
         store.set(NSNumber(value: stats.totalBytesFreed), forKey: Keys.totalBytes)
+        store.set(stats.totalTimeSpentSeconds,        forKey: Keys.totalTime)
     }
 }

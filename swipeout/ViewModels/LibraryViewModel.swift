@@ -280,4 +280,19 @@ final class LibraryViewModel {
         statsStore.reset()
         lifetimeStats = statsStore.load()
     }
+
+    /// Persists the elapsed session time from a swipe session into lifetime stats.
+    /// Call this when the swipe container disappears so time is always captured,
+    /// even if the user doesn't confirm a deletion.
+    func recordSessionTime(from session: SwipeSessionViewModel) {
+        let seconds = session.drainElapsedSeconds()
+        guard seconds > 0 else { return }
+        lifetimeStats = statsStore.recordSessionTime(seconds: seconds)
+    }
+
+    /// Returns total photo and video counts across the whole library.
+    /// Runs a metadata-only fetch — no images are loaded.
+    func fetchLibraryTotals() -> (photos: Int, videos: Int) {
+        service.fetchLibraryTotals()
+    }
 }

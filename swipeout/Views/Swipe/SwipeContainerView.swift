@@ -13,6 +13,7 @@ struct SwipeContainerView: View {
     @Binding var path: NavigationPath
 
     @Environment(LibraryViewModel.self) private var library
+    @Environment(\.scenePhase) private var scenePhase
     @State private var session: SessionHolder
 
     init(mode: BrowseMode, path: Binding<NavigationPath>) {
@@ -36,6 +37,8 @@ struct SwipeContainerView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button("Pause") {
+                    // Persist elapsed time before navigating away.
+                    if let vm = session.session { library.recordSessionTime(from: vm) }
                     // Progress is already persisted (reviewed photos are skipped
                     // next time), so just return home; resume picks up where we
                     // left off.
@@ -116,6 +119,23 @@ struct SwipeContainerView: View {
         .onAppear {
             if session.session == nil {
                 session.session = library.makeSession(for: mode)
+            }
+            session.session?.startTimer()
+        }
+        .onDisappear {
+            if let vm = session.session {
+                library.recordSessionTime(from: vm)
+            }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            switch newPhase {
+            case .active:
+                session.session?.startTimer()
+            case .inactive, .background:
+                // Pause the timer; time will be drained on onDisappear.
+                session.session?.pauseTimer()
+            @unknown default:
+                break
             }
         }
     }

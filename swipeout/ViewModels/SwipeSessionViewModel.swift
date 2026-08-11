@@ -31,6 +31,12 @@ final class SwipeSessionViewModel {
     @ObservationIgnored private let service: PhotoLibraryServicing
     @ObservationIgnored private let tracker: ReviewTracking
 
+    // MARK: Session timer
+    /// Wall-clock instant when the timer was last started (nil = paused/not started).
+    @ObservationIgnored private var timerStartDate: Date?
+    /// Seconds accumulated before the current run (handles pause / resume).
+    @ObservationIgnored private var accumulatedSeconds: Int = 0
+
     init(mode: BrowseMode,
          items: [PhotoItem],
          service: PhotoLibraryServicing,
@@ -66,6 +72,31 @@ final class SwipeSessionViewModel {
 
     var estimatedBytesQueued: Int64 {
         deletionQueue.reduce(0) { $0 + $1.estimatedBytes }
+    }
+
+    // MARK: Timer helpers
+
+    /// Call when the swipe screen becomes active (appear / foreground).
+    func startTimer() {
+        guard timerStartDate == nil else { return }
+        timerStartDate = Date()
+    }
+
+    /// Call when the swipe screen is hidden (disappear / background).
+    func pauseTimer() {
+        guard let start = timerStartDate else { return }
+        accumulatedSeconds += Int(Date().timeIntervalSince(start))
+        timerStartDate = nil
+    }
+
+    /// Returns the total elapsed seconds for this session and resets the counter.
+    /// Call once when the session is completely done so the caller can persist
+    /// the time to `StatsStore`.
+    func drainElapsedSeconds() -> Int {
+        pauseTimer()
+        let total = accumulatedSeconds
+        accumulatedSeconds = 0
+        return total
     }
 
     // MARK: Actions
