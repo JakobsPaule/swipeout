@@ -68,7 +68,7 @@ final class ReviewStore: ReviewTracking {
         static let defaultAlbum = "review.defaultAlbum"
     }
 
-    private let store: KeyValueStore
+    nonisolated(unsafe) private let store: KeyValueStore
 
     nonisolated init(store: KeyValueStore = UserDefaults.standard) {
         self.store = store

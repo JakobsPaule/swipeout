@@ -234,7 +234,8 @@ struct SwipeContainerView: View {
 }
 
 /// Holds the session so it survives view re-creation during navigation.
-@MainActor
+/// Not @MainActor so it can be initialised from the nonisolated View.init;
+/// all access happens on the main actor via SwiftUI body / onAppear.
 @Observable
 final class SessionHolder {
     var session: SwipeSessionViewModel?

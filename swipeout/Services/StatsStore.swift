@@ -71,7 +71,7 @@ final class StatsStore {
         static let totalTime   = "stats.lifetime.totalTimeSpentSeconds"
     }
 
-    private let store: KeyValueStore
+    nonisolated(unsafe) private let store: KeyValueStore
 
     nonisolated init(store: KeyValueStore = UserDefaults.standard) {
         self.store = store
