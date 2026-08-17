@@ -40,7 +40,7 @@ final class SwipeSessionViewModel {
     init(mode: BrowseMode,
          items: [PhotoItem],
          service: PhotoLibraryServicing,
-         tracker: ReviewTracking = InMemoryReviewTracker(),
+         tracker: ReviewTracking,
          allAlreadyReviewed: Bool = false) {
         self.mode = mode
         self.items = items
