@@ -96,7 +96,7 @@ struct StatsView: View {
 
             // MARK: - Disclaimer
             Section {
-                Text("Storage figures are estimates based on each photo's reported file size. Actual space is reclaimed once photos leave "Recently Deleted". Library totals include only photos and videos accessible to this app.")
+                Text("Storage figures are estimates based on each photo's reported file size. Actual space is reclaimed once photos leave \"Recently Deleted\". Library totals include only photos and videos accessible to this app.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
